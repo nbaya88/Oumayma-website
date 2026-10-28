@@ -15,52 +15,57 @@ import AdminLayout from './components/AdminLayout';
 import { Page } from './types';
 
 function AppContent() {
-  const { isAdmin, setIsAdmin, currentStudentId, getStudentById, logoutStudent } = useApp();
+  const { isAdmin, setIsAdmin, currentStudentId, logoutStudent } = useApp();
   const [currentPage, setCurrentPage] = useState<Page>('home');
   const [showLoginModal, setShowLoginModal] = useState(false);
   const [password, setPassword] = useState('');
   const [showLogoutWarning, setShowLogoutWarning] = useState<'student' | 'professor' | null>(null);
   const [pendingAction, setPendingAction] = useState<(() => void) | null>(null);
   const [showResetPage, setShowResetPage] = useState(false);
+  const [showDiagnosticPage, setShowDiagnosticPage] = useState(false);
 
-  // Check URL hash for admin/student access
+  // Check URL hash for navigation
   useEffect(() => {
     const handleHashChange = () => {
       const hash = window.location.hash;
 
-      // Page de diagnostic
-      if (hash === '#diagnostic') {
-        return;
-      }
-
-      // Page de réinitialisation
+      // Pages spéciales
       if (hash === '#reset') {
         setShowResetPage(true);
+        setShowDiagnosticPage(false);
         return;
       }
 
-      // Vérifier si l'utilisateur essaie d'accéder à l'espace professeur alors qu'il est connecté en tant qu'élève
+      if (hash === '#diagnostic') {
+        setShowDiagnosticPage(true);
+        setShowResetPage(false);
+        return;
+      }
+
+      // Cacher les pages spéciales
+      setShowResetPage(false);
+      setShowDiagnosticPage(false);
+
+      // Vérifier les conflits de session
       if (hash === '#admin' && currentStudentId && !isAdmin) {
         setShowLogoutWarning('student');
         setPendingAction(() => () => {
           logoutStudent();
           setShowLoginModal(true);
         });
-        window.history.pushState({}, '', window.location.pathname);
         return;
       }
 
-      // Vérifier si l'utilisateur essaie d'accéder à l'espace élève alors qu'il est connecté en tant que professeur
       if (hash === '#student-login' && isAdmin) {
         setShowLogoutWarning('professor');
         setPendingAction(() => () => {
           setIsAdmin(false);
           setCurrentPage('student-login');
         });
-        window.history.pushState({}, '', window.location.pathname);
         return;
       }
 
+      // Navigation normale
       if (hash === '#admin') {
         setShowLoginModal(true);
       } else if (hash === '#student-login') {
@@ -69,28 +74,23 @@ function AppContent() {
         setCurrentPage('student-dashboard');
       } else if (hash === '#student-profile' && currentStudentId) {
         setCurrentPage('student-profile');
-      } else if (hash === '' || hash === '#' || hash === '#home') {
-        // Retour à l'accueil seulement si on n'est pas déjà connecté
-        if (!isAdmin && !currentStudentId) {
-          setCurrentPage('home');
-          setShowResetPage(false);
-        }
       }
     };
+
     handleHashChange();
     window.addEventListener('hashchange', handleHashChange);
     window.addEventListener('popstate', handleHashChange);
+
     return () => {
       window.removeEventListener('hashchange', handleHashChange);
       window.removeEventListener('popstate', handleHashChange);
     };
-  }, [currentStudentId, isAdmin]);
+  }, [currentStudentId, isAdmin, logoutStudent, setIsAdmin]);
 
   // Auto-navigate to student dashboard if logged in
   useEffect(() => {
     if (currentStudentId && currentPage === 'student-login') {
       setCurrentPage('student-dashboard');
-      window.location.hash = '#student-dashboard';
     }
   }, [currentStudentId, currentPage]);
 
@@ -100,56 +100,17 @@ function AppContent() {
       setCurrentPage('dashboard');
       setShowLoginModal(false);
       setPassword('');
-      // Ne pas changer le hash ici pour éviter le conflit avec le useEffect
     } else {
       alert('Mot de passe incorrect');
     }
   };
 
-  // Diagnostic page
-  if (window.location.hash === '#diagnostic') {
+  // Page de diagnostic
+  if (showDiagnosticPage) {
     return <DiagnosticPage />;
   }
 
-  // Student views
-  if (currentStudentId && !isAdmin) {
-    // Si on veut retourner à l'accueil
-    if (currentPage === 'home') {
-      return <HomePage />;
-    }
-    if (currentPage === 'student-profile') {
-      return <StudentProfilePage />;
-    }
-    if (currentPage === 'student-dashboard' || currentPage === 'student-login') {
-      return <StudentDashboardPage />;
-    }
-    return <StudentDashboardPage />;
-  }
-
-  // Admin views
-  if (isAdmin) {
-    // Si on veut retourner à l'accueil
-    if (currentPage === 'home') {
-      return <HomePage />;
-    }
-    return (
-      <AdminLayout currentPage={currentPage} onPageChange={setCurrentPage}>
-        {currentPage === 'dashboard' && <DashboardPage />}
-        {currentPage === 'calendar' && <CalendarPage />}
-        {currentPage === 'students' && <StudentsPage />}
-        {currentPage === 'invoices' && <InvoicesPage />}
-        {currentPage === 'archives' && <ArchivesPage />}
-        {currentPage === 'settings' && <SettingsPage />}
-      </AdminLayout>
-    );
-  }
-
-  // Student login page
-  if (currentPage === 'student-login') {
-    return <StudentLoginPage />;
-  }
-
-  // Reset page
+  // Page de réinitialisation
   if (showResetPage) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-red-50 to-orange-50 flex items-center justify-center p-4">
@@ -162,7 +123,7 @@ function AppContent() {
             </div>
             <h2 className="text-2xl font-bold text-gray-900 mb-2">Réinitialisation des données</h2>
             <p className="text-gray-600 text-sm">
-              Cette action va supprimer toutes les données locales (élèves, rendez-vous, factures, etc.) et recharger les données de démonstration.
+              Cette action va supprimer toutes les données locales et recharger les données de démonstration.
             </p>
           </div>
 
@@ -189,7 +150,7 @@ function AppContent() {
 
           <div className="mt-6 p-4 bg-blue-50 border border-blue-200 rounded-xl">
             <p className="text-sm text-blue-800">
-              <strong>💡 Astuce :</strong> Après la réinitialisation, utilisez ces identifiants :
+              <strong>💡 Identifiants après réinitialisation :</strong>
             </p>
             <div className="mt-2 text-xs text-blue-700 space-y-1">
               <div><strong>Professeur :</strong> mot de passe <code className="bg-blue-100 px-1 rounded">prof2026</code></div>
@@ -201,12 +162,45 @@ function AppContent() {
     );
   }
 
-  // Home page
+  // Espace élève
+  if (currentStudentId && !isAdmin) {
+    if (currentPage === 'home') {
+      return <HomePage />;
+    }
+    if (currentPage === 'student-profile') {
+      return <StudentProfilePage />;
+    }
+    return <StudentDashboardPage />;
+  }
+
+  // Espace professeur
+  if (isAdmin) {
+    if (currentPage === 'home') {
+      return <HomePage />;
+    }
+    return (
+      <AdminLayout currentPage={currentPage} onPageChange={setCurrentPage}>
+        {currentPage === 'dashboard' && <DashboardPage />}
+        {currentPage === 'calendar' && <CalendarPage />}
+        {currentPage === 'students' && <StudentsPage />}
+        {currentPage === 'invoices' && <InvoicesPage />}
+        {currentPage === 'archives' && <ArchivesPage />}
+        {currentPage === 'settings' && <SettingsPage />}
+      </AdminLayout>
+    );
+  }
+
+  // Page de connexion élève
+  if (currentPage === 'student-login') {
+    return <StudentLoginPage />;
+  }
+
+  // Page d'accueil
   return (
     <>
       <HomePage />
 
-      {/* Admin Login Modal */}
+      {/* Modal de connexion professeur */}
       {showLoginModal && (
         <div className="fixed inset-0 bg-black/60 flex items-center justify-center z-50 p-4">
           <div className="bg-white rounded-2xl shadow-2xl max-w-sm w-full p-8">
@@ -236,7 +230,6 @@ function AppContent() {
                 onClick={() => {
                   setShowLoginModal(false);
                   setPassword('');
-                  setCurrentPage('home');
                 }}
                 className="w-full text-gray-500 text-sm hover:text-gray-700 transition-colors"
               >
@@ -264,7 +257,7 @@ function AppContent() {
         </div>
       )}
 
-      {/* Logout Warning Modal */}
+      {/* Modal d'avertissement de déconnexion */}
       {showLogoutWarning && (
         <div className="fixed inset-0 bg-black/60 flex items-center justify-center z-50 p-4">
           <div className="bg-white rounded-2xl shadow-2xl max-w-md w-full p-8">
@@ -286,7 +279,6 @@ function AppContent() {
                 onClick={() => {
                   setShowLogoutWarning(null);
                   setPendingAction(null);
-                  window.history.pushState({}, '', window.location.pathname);
                 }}
                 className="flex-1 px-4 py-3 border border-gray-200 rounded-xl font-medium text-gray-600 hover:bg-gray-50 transition-colors"
               >
