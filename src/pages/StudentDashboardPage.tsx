@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useApp } from '../context/AppContext';
-import { Calendar, FileText, Download, Clock, CheckCircle, AlertCircle, XCircle, Upload, Trash2, BookOpen, Euro, User, LogOut, FileUp, ArrowRight, X } from 'lucide-react';
+import { Calendar, FileText, Download, Clock, CheckCircle, AlertCircle, XCircle, Upload, Trash2, BookOpen, Euro, User, LogOut, FileUp, ArrowRight, X, ChevronLeft, ChevronRight } from 'lucide-react';
 import { format, addDays } from 'date-fns';
 import { fr } from 'date-fns/locale';
 
@@ -18,6 +18,7 @@ export default function StudentDashboardPage() {
   const [subject, setSubject] = useState('');
   const [bookingNotes, setBookingNotes] = useState('');
   const [bookingConfirmed, setBookingConfirmed] = useState(false);
+  const [calendarMonth, setCalendarMonth] = useState(0); // 0 = mois actuel, 1 = mois suivant, 2 = mois +2
 
   const student = currentStudentId ? getStudentById(currentStudentId) : null;
   if (!student) return null;
@@ -50,11 +51,22 @@ export default function StudentDashboardPage() {
   const getAvailableDates = () => {
     const dates = [];
     const today = new Date();
-    for (let i = 1; i <= 90; i++) { // 3 mois au lieu de 14 jours
-      const date = addDays(today, i);
-      if (date.getDay() !== 0) dates.push(date); // Exclure les dimanches
+    const targetMonth = new Date(today.getFullYear(), today.getMonth() + calendarMonth + 1, 1);
+    const daysInMonth = new Date(targetMonth.getFullYear(), targetMonth.getMonth() + 1, 0).getDate();
+
+    for (let day = 1; day <= daysInMonth; day++) {
+      const date = new Date(targetMonth.getFullYear(), targetMonth.getMonth(), day);
+      if (date > today && date.getDay() !== 0) { // Exclure les dimanches et dates passées
+        dates.push(date);
+      }
     }
     return dates;
+  };
+
+  const getMonthLabel = () => {
+    const today = new Date();
+    const targetMonth = new Date(today.getFullYear(), today.getMonth() + calendarMonth + 1, 1);
+    return format(targetMonth, 'MMMM yyyy', { locale: fr });
   };
 
   const isTimeSlotAvailable = (date: string, time: string) => {
@@ -693,8 +705,37 @@ export default function StudentDashboardPage() {
 
                       {/* Date Selection */}
                       <div className="mb-6">
-                        <label className="block text-sm font-semibold text-gray-700 mb-3">Date</label>
-                        <div className="grid grid-cols-4 md:grid-cols-7 gap-2">
+                        <div className="flex items-center justify-between mb-3">
+                          <label className="block text-sm font-semibold text-gray-700">Date</label>
+                          <div className="flex items-center gap-2">
+                            <button
+                              onClick={() => setCalendarMonth(Math.max(0, calendarMonth - 1))}
+                              disabled={calendarMonth === 0}
+                              className={`p-2 rounded-lg transition-all ${
+                                calendarMonth === 0
+                                  ? 'opacity-30 cursor-not-allowed bg-gray-100'
+                                  : 'bg-gray-100 hover:bg-gray-200 text-gray-700'
+                              }`}
+                            >
+                              <ChevronLeft className="w-4 h-4" />
+                            </button>
+                            <span className="text-sm font-medium text-gray-900 min-w-[140px] text-center capitalize">
+                              {getMonthLabel()}
+                            </span>
+                            <button
+                              onClick={() => setCalendarMonth(Math.min(2, calendarMonth + 1))}
+                              disabled={calendarMonth === 2}
+                              className={`p-2 rounded-lg transition-all ${
+                                calendarMonth === 2
+                                  ? 'opacity-30 cursor-not-allowed bg-gray-100'
+                                  : 'bg-gray-100 hover:bg-gray-200 text-gray-700'
+                              }`}
+                            >
+                              <ChevronRight className="w-4 h-4" />
+                            </button>
+                          </div>
+                        </div>
+                        <div className="grid grid-cols-7 gap-2">
                           {getAvailableDates().map(date => {
                             const dateStr = format(date, 'yyyy-MM-dd');
                             return (
@@ -704,12 +745,11 @@ export default function StudentDashboardPage() {
                                 className={`p-3 rounded-xl text-center transition-all ${
                                   selectedDate === dateStr
                                     ? 'bg-indigo-600 text-white shadow-lg'
-                                    : 'bg-gray-50 hover:bg-indigo-50 border border-gray-200'
+                                    : 'bg-white hover:bg-indigo-50 border-2 border-gray-300 text-gray-700 hover:border-indigo-400'
                                 }`}
                               >
                                 <div className="text-xs font-medium">{format(date, 'EEE', { locale: fr })}</div>
                                 <div className="text-lg font-bold">{format(date, 'd')}</div>
-                                <div className="text-xs">{format(date, 'MMM', { locale: fr })}</div>
                               </button>
                             );
                           })}

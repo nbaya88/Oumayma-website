@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useApp } from '../context/AppContext';
-import { Calendar, Clock, BookOpen, CheckCircle, ArrowRight, GraduationCap, Star, Users, Award, TrendingUp, Calculator, Sigma, Pi, FunctionSquare, Atom, FlaskConical, LogIn, UserPlus, Sun, Moon } from 'lucide-react';
+import { Calendar, Clock, BookOpen, CheckCircle, ArrowRight, GraduationCap, Star, Users, Award, TrendingUp, Calculator, Sigma, Pi, FunctionSquare, Atom, FlaskConical, LogIn, UserPlus, Sun, Moon, ChevronLeft, ChevronRight } from 'lucide-react';
 import { format, addDays } from 'date-fns';
 import { fr } from 'date-fns/locale';
 
@@ -22,14 +22,27 @@ export default function HomePage() {
   const activeAppointments = appointments.filter(a => !a.archived && a.status !== 'cancelled');
   const availableTimes = ['08:00', '09:00', '10:00', '11:00', '14:00', '15:00', '16:00', '17:00', '18:00', '19:00'];
 
+  const [calendarMonth, setCalendarMonth] = useState(0); // 0 = mois actuel, 1 = mois suivant, 2 = mois +2
+
   const getAvailableDates = () => {
     const dates = [];
     const today = new Date();
-    for (let i = 1; i <= 90; i++) { // 3 mois au lieu de 14 jours
-      const date = addDays(today, i);
-      if (date.getDay() !== 0) dates.push(date); // Exclure les dimanches
+    const targetMonth = new Date(today.getFullYear(), today.getMonth() + calendarMonth + 1, 1);
+    const daysInMonth = new Date(targetMonth.getFullYear(), targetMonth.getMonth() + 1, 0).getDate();
+
+    for (let day = 1; day <= daysInMonth; day++) {
+      const date = new Date(targetMonth.getFullYear(), targetMonth.getMonth(), day);
+      if (date > today && date.getDay() !== 0) { // Exclure les dimanches et dates passées
+        dates.push(date);
+      }
     }
     return dates;
+  };
+
+  const getMonthLabel = () => {
+    const today = new Date();
+    const targetMonth = new Date(today.getFullYear(), today.getMonth() + calendarMonth + 1, 1);
+    return format(targetMonth, 'MMMM yyyy', { locale: fr });
   };
 
   const isTimeSlotAvailable = (date: string, time: string) => {
@@ -254,36 +267,36 @@ export default function HomePage() {
     <div className="min-h-screen theme-bg-primary theme-text-primary overflow-hidden">
       {/* Animated Background */}
       <div className="fixed inset-0 overflow-hidden pointer-events-none">
-        {/* Symboles mathématiques - plus visibles en mode light */}
-        <div className={`absolute top-20 left-[10%] text-7xl font-bold animate-pulse ${theme === 'dark' ? 'text-indigo-500/10' : 'text-indigo-500/25'}`}>∑</div>
-        <div className={`absolute top-40 right-[15%] text-6xl font-bold animate-pulse ${theme === 'dark' ? 'text-purple-500/10' : 'text-purple-500/25'}`} style={{ animationDelay: '0.5s' }}>∫</div>
-        <div className={`absolute top-[60%] left-[5%] text-8xl font-bold animate-pulse ${theme === 'dark' ? 'text-blue-500/10' : 'text-blue-500/25'}`} style={{ animationDelay: '1s' }}>π</div>
-        <div className={`absolute top-[30%] right-[8%] text-5xl font-bold animate-pulse ${theme === 'dark' ? 'text-cyan-500/10' : 'text-cyan-500/25'}`} style={{ animationDelay: '1.5s' }}>Δ</div>
-        <div className={`absolute bottom-[20%] right-[20%] text-6xl font-bold animate-pulse ${theme === 'dark' ? 'text-indigo-500/10' : 'text-indigo-500/25'}`} style={{ animationDelay: '2s' }}>∞</div>
-        <div className={`absolute bottom-[40%] left-[20%] text-5xl font-bold animate-pulse ${theme === 'dark' ? 'text-purple-500/10' : 'text-purple-500/25'}`} style={{ animationDelay: '0.8s' }}>√</div>
-        <div className={`absolute top-[50%] left-[50%] text-4xl font-bold animate-pulse ${theme === 'dark' ? 'text-blue-500/10' : 'text-blue-500/25'}`} style={{ animationDelay: '1.2s' }}>θ</div>
-        <div className={`absolute top-[15%] left-[40%] text-5xl font-bold animate-pulse ${theme === 'dark' ? 'text-cyan-500/10' : 'text-cyan-500/25'}`} style={{ animationDelay: '0.3s' }}>φ</div>
+        {/* Symboles mathématiques - beaucoup plus visibles en mode light */}
+        <div className={`absolute top-20 left-[10%] text-7xl font-bold animate-pulse ${theme === 'dark' ? 'text-indigo-500/10' : 'text-indigo-600/40'}`}>∑</div>
+        <div className={`absolute top-40 right-[15%] text-6xl font-bold animate-pulse ${theme === 'dark' ? 'text-purple-500/10' : 'text-purple-600/40'}`} style={{ animationDelay: '0.5s' }}>∫</div>
+        <div className={`absolute top-[60%] left-[5%] text-8xl font-bold animate-pulse ${theme === 'dark' ? 'text-blue-500/10' : 'text-blue-600/40'}`} style={{ animationDelay: '1s' }}>π</div>
+        <div className={`absolute top-[30%] right-[8%] text-5xl font-bold animate-pulse ${theme === 'dark' ? 'text-cyan-500/10' : 'text-cyan-600/40'}`} style={{ animationDelay: '1.5s' }}>Δ</div>
+        <div className={`absolute bottom-[20%] right-[20%] text-6xl font-bold animate-pulse ${theme === 'dark' ? 'text-indigo-500/10' : 'text-indigo-600/40'}`} style={{ animationDelay: '2s' }}>∞</div>
+        <div className={`absolute bottom-[40%] left-[20%] text-5xl font-bold animate-pulse ${theme === 'dark' ? 'text-purple-500/10' : 'text-purple-600/40'}`} style={{ animationDelay: '0.8s' }}>√</div>
+        <div className={`absolute top-[50%] left-[50%] text-4xl font-bold animate-pulse ${theme === 'dark' ? 'text-blue-500/10' : 'text-blue-600/40'}`} style={{ animationDelay: '1.2s' }}>θ</div>
+        <div className={`absolute top-[15%] left-[40%] text-5xl font-bold animate-pulse ${theme === 'dark' ? 'text-cyan-500/10' : 'text-cyan-600/40'}`} style={{ animationDelay: '0.3s' }}>φ</div>
 
-        {/* Grille - plus visible en mode light */}
-        <div className={`absolute inset-0 ${theme === 'dark' ? 'opacity-[0.03]' : 'opacity-[0.08]'}`} style={{
-          backgroundImage: 'linear-gradient(rgba(99,102,241,0.5) 1px, transparent 1px), linear-gradient(90deg, rgba(99,102,241,0.5) 1px, transparent 1px)',
+        {/* Grille - beaucoup plus visible en mode light */}
+        <div className={`absolute inset-0 ${theme === 'dark' ? 'opacity-[0.03]' : 'opacity-[0.15]'}`} style={{
+          backgroundImage: 'linear-gradient(rgba(99,102,241,0.8) 1px, transparent 1px), linear-gradient(90deg, rgba(99,102,241,0.8) 1px, transparent 1px)',
           backgroundSize: '60px 60px'
         }}></div>
 
-        {/* Orbes de lumière - plus visibles en mode light */}
-        <div className={`absolute top-0 right-0 w-[500px] h-[500px] rounded-full blur-[120px] ${theme === 'dark' ? 'bg-indigo-600/20' : 'bg-indigo-400/30'}`}></div>
-        <div className={`absolute bottom-0 left-0 w-[400px] h-[400px] rounded-full blur-[120px] ${theme === 'dark' ? 'bg-purple-600/20' : 'bg-purple-400/30'}`}></div>
+        {/* Orbes de lumière - beaucoup plus visibles en mode light */}
+        <div className={`absolute top-0 right-0 w-[500px] h-[500px] rounded-full blur-[120px] ${theme === 'dark' ? 'bg-indigo-600/20' : 'bg-indigo-500/50'}`}></div>
+        <div className={`absolute bottom-0 left-0 w-[400px] h-[400px] rounded-full blur-[120px] ${theme === 'dark' ? 'bg-purple-600/20' : 'bg-purple-500/50'}`}></div>
       </div>
 
       {/* Navigation */}
       <nav className="relative z-10 max-w-7xl mx-auto px-4 py-6 flex items-center justify-between">
         <div className="flex items-center gap-3">
-          <div className="w-10 h-10 bg-gradient-to-br from-indigo-500 to-purple-600 rounded-xl flex items-center justify-center">
+          <div className="w-10 h-10 bg-gradient-to-br from-indigo-500 to-purple-600 rounded-xl flex items-center justify-center shadow-lg">
             <Sigma className="w-6 h-6 text-white" />
           </div>
           <div>
-            <span className="text-xl font-bold theme-text-primary">MathPro</span>
-            <span className="text-xs text-indigo-400 block -mt-1">Cours de mathématiques</span>
+            <span className={`text-xl font-bold ${theme === 'dark' ? 'text-white' : 'text-gray-900'}`}>MathPro</span>
+            <span className={`text-xs block -mt-1 ${theme === 'dark' ? 'text-indigo-400' : 'text-indigo-600'}`}>Cours de mathématiques</span>
           </div>
         </div>
         <div className="flex items-center gap-3">
@@ -293,21 +306,25 @@ export default function HomePage() {
             className={`p-2 rounded-xl border transition-all ${
               theme === 'dark'
                 ? 'border-gray-700 hover:border-gray-500 bg-slate-800/50'
-                : 'border-gray-300 hover:border-gray-400 bg-white shadow-sm'
+                : 'border-gray-400 hover:border-gray-500 bg-white shadow-md'
             }`}
             title={theme === 'dark' ? 'Passer en mode clair' : 'Passer en mode sombre'}
           >
-            {theme === 'dark' ? <Sun className="w-5 h-5 text-yellow-400" /> : <Moon className="w-5 h-5 text-indigo-600" />}
+            {theme === 'dark' ? <Sun className="w-5 h-5 text-yellow-400" /> : <Moon className="w-5 h-5 text-indigo-700" />}
           </button>
           <button
             onClick={() => window.location.hash = '#student-login'}
-            className="flex items-center gap-2 px-4 py-2 text-sm text-indigo-400 hover:text-indigo-300 border border-indigo-500/30 rounded-xl hover:border-indigo-400 transition-all"
+            className={`flex items-center gap-2 px-4 py-2 text-sm border rounded-xl transition-all ${
+              theme === 'dark'
+                ? 'text-indigo-400 hover:text-indigo-300 border-indigo-500/30 hover:border-indigo-400'
+                : 'text-indigo-700 hover:text-indigo-800 border-indigo-400 hover:border-indigo-500 bg-white shadow-sm'
+            }`}
           >
             <LogIn className="w-4 h-4" /> Espace élève
           </button>
           <button
             onClick={() => document.getElementById('booking')?.scrollIntoView({ behavior: 'smooth' })}
-            className="hidden md:flex items-center gap-2 px-4 py-2 text-sm bg-indigo-600 text-white rounded-xl hover:bg-indigo-500 transition-all"
+            className="hidden md:flex items-center gap-2 px-4 py-2 text-sm bg-indigo-600 text-white rounded-xl hover:bg-indigo-500 transition-all shadow-lg"
           >
             Réserver un cours
           </button>
@@ -318,17 +335,21 @@ export default function HomePage() {
       <section className="relative z-10 max-w-7xl mx-auto px-4 pt-12 pb-24">
         <div className="grid lg:grid-cols-2 gap-12 items-center">
           <div>
-            <div className="inline-flex items-center gap-2 px-4 py-2 bg-indigo-500/10 border border-indigo-500/20 rounded-full text-sm text-indigo-300 mb-6">
+            <div className={`inline-flex items-center gap-2 px-4 py-2 rounded-full text-sm mb-6 ${
+              theme === 'dark'
+                ? 'bg-indigo-500/10 border border-indigo-500/20 text-indigo-300'
+                : 'bg-indigo-100 border-2 border-indigo-300 text-indigo-700'
+            }`}>
               <Star className="w-4 h-4 text-yellow-400" />
               <span>+10 ans d'expérience • +200 élèves accompagnés</span>
             </div>
             <h1 className="text-5xl md:text-6xl font-bold leading-tight mb-6">
-              <span className="theme-text-primary">Maîtrisez les</span><br />
-              <span className="bg-gradient-to-r from-indigo-400 via-purple-400 to-cyan-400 bg-clip-text text-transparent">
+              <span className={theme === 'dark' ? 'text-white' : 'text-gray-900'}>Maîtrisez les</span><br />
+              <span className={`bg-gradient-to-r bg-clip-text text-transparent ${theme === 'dark' ? 'from-indigo-400 via-purple-400 to-cyan-400' : 'from-indigo-600 via-purple-600 to-cyan-600'}`}>
                 mathématiques
               </span>
             </h1>
-            <p className="text-lg theme-text-secondary mb-8 max-w-lg">
+            <p className={`text-lg mb-8 max-w-lg ${theme === 'dark' ? 'text-gray-300' : 'text-gray-700'}`}>
               Cours particuliers de la 6ème à l'enseignement supérieur.
               Une méthode personnalisée pour chaque élève, des résultats concrets.
             </p>
@@ -352,18 +373,18 @@ export default function HomePage() {
             </div>
 
             {/* Stats */}
-            <div className={`grid grid-cols-3 gap-6 mt-12 pt-8 border-t ${theme === 'dark' ? 'border-gray-800' : 'border-gray-200'}`}>
+            <div className={`grid grid-cols-3 gap-6 mt-12 pt-8 border-t ${theme === 'dark' ? 'border-gray-800' : 'border-gray-300'}`}>
               <div>
-                <div className="text-3xl font-bold theme-text-primary">95%</div>
-                <div className="text-sm theme-text-muted">Réussite au bac</div>
+                <div className={`text-3xl font-bold ${theme === 'dark' ? 'text-white' : 'text-gray-900'}`}>95%</div>
+                <div className={`text-sm ${theme === 'dark' ? 'text-gray-400' : 'text-gray-600'}`}>Réussite au bac</div>
               </div>
               <div>
-                <div className="text-3xl font-bold theme-text-primary">+200</div>
-                <div className="text-sm theme-text-muted">Élèves formés</div>
+                <div className={`text-3xl font-bold ${theme === 'dark' ? 'text-white' : 'text-gray-900'}`}>+200</div>
+                <div className={`text-sm ${theme === 'dark' ? 'text-gray-400' : 'text-gray-600'}`}>Élèves formés</div>
               </div>
               <div>
-                <div className="text-3xl font-bold theme-text-primary">4.9/5</div>
-                <div className="text-sm theme-text-muted">Satisfaction</div>
+                <div className={`text-3xl font-bold ${theme === 'dark' ? 'text-white' : 'text-gray-900'}`}>4.9/5</div>
+                <div className={`text-sm ${theme === 'dark' ? 'text-gray-400' : 'text-gray-600'}`}>Satisfaction</div>
               </div>
             </div>
           </div>
@@ -371,28 +392,44 @@ export default function HomePage() {
           {/* Visual Element */}
           <div className="hidden lg:block relative">
             <div className="relative w-full aspect-square max-w-md mx-auto">
-              <div className="absolute inset-[15%] bg-gradient-to-br from-indigo-600/30 to-purple-600/30 rounded-full backdrop-blur-sm border border-indigo-500/20"></div>
-              <div className="absolute inset-[25%] bg-gradient-to-br from-indigo-600/40 to-purple-600/40 rounded-full flex items-center justify-center">
+              <div className={`absolute inset-[15%] rounded-full backdrop-blur-sm ${
+                theme === 'dark'
+                  ? 'bg-gradient-to-br from-indigo-600/30 to-purple-600/30 border border-indigo-500/20'
+                  : 'bg-gradient-to-br from-indigo-500/40 to-purple-500/40 border-2 border-indigo-400/50'
+              }`}></div>
+              <div className={`absolute inset-[25%] rounded-full flex items-center justify-center ${
+                theme === 'dark'
+                  ? 'bg-gradient-to-br from-indigo-600/40 to-purple-600/40'
+                  : 'bg-gradient-to-br from-indigo-600/60 to-purple-600/60'
+              }`}>
                 <div className="text-center">
-                  <div className="text-6xl font-bold text-white mb-2">f(x)</div>
-                  <div className="text-sm text-indigo-200">Fonctions & Analyse</div>
+                  <div className="text-6xl font-bold text-white mb-2 drop-shadow-lg">f(x)</div>
+                  <div className={`text-sm ${theme === 'dark' ? 'text-indigo-200' : 'text-white'}`}>Fonctions & Analyse</div>
                 </div>
               </div>
-              <div className={`absolute top-[5%] left-1/2 -translate-x-1/2 backdrop-blur rounded-2xl p-4 shadow-xl ${theme === 'dark' ? 'bg-slate-800/80 border border-gray-700' : 'bg-white/80 border border-gray-200'}`}>
-                <Calculator className="w-8 h-8 text-indigo-400" />
-                <div className="text-xs theme-text-muted mt-1">Calcul</div>
+              <div className={`absolute top-[5%] left-1/2 -translate-x-1/2 backdrop-blur rounded-2xl p-4 shadow-2xl ${
+                theme === 'dark' ? 'bg-slate-800/80 border border-gray-700' : 'bg-white border-2 border-gray-300'
+              }`}>
+                <Calculator className={`w-8 h-8 ${theme === 'dark' ? 'text-indigo-400' : 'text-indigo-600'}`} />
+                <div className={`text-xs mt-1 ${theme === 'dark' ? 'text-gray-400' : 'text-gray-700'}`}>Calcul</div>
               </div>
-              <div className={`absolute bottom-[5%] left-1/2 -translate-x-1/2 backdrop-blur rounded-2xl p-4 shadow-xl ${theme === 'dark' ? 'bg-slate-800/80 border border-gray-700' : 'bg-white/80 border border-gray-200'}`}>
-                <Pi className="w-8 h-8 text-purple-400" />
-                <div className="text-xs theme-text-muted mt-1">Géométrie</div>
+              <div className={`absolute bottom-[5%] left-1/2 -translate-x-1/2 backdrop-blur rounded-2xl p-4 shadow-2xl ${
+                theme === 'dark' ? 'bg-slate-800/80 border border-gray-700' : 'bg-white border-2 border-gray-300'
+              }`}>
+                <Pi className={`w-8 h-8 ${theme === 'dark' ? 'text-purple-400' : 'text-purple-600'}`} />
+                <div className={`text-xs mt-1 ${theme === 'dark' ? 'text-gray-400' : 'text-gray-700'}`}>Géométrie</div>
               </div>
-              <div className={`absolute left-[5%] top-1/2 -translate-y-1/2 backdrop-blur rounded-2xl p-4 shadow-xl ${theme === 'dark' ? 'bg-slate-800/80 border border-gray-700' : 'bg-white/80 border border-gray-200'}`}>
-                <FunctionSquare className="w-8 h-8 text-cyan-400" />
-                <div className="text-xs theme-text-muted mt-1">Fonctions</div>
+              <div className={`absolute left-[5%] top-1/2 -translate-y-1/2 backdrop-blur rounded-2xl p-4 shadow-2xl ${
+                theme === 'dark' ? 'bg-slate-800/80 border border-gray-700' : 'bg-white border-2 border-gray-300'
+              }`}>
+                <FunctionSquare className={`w-8 h-8 ${theme === 'dark' ? 'text-cyan-400' : 'text-cyan-600'}`} />
+                <div className={`text-xs mt-1 ${theme === 'dark' ? 'text-gray-400' : 'text-gray-700'}`}>Fonctions</div>
               </div>
-              <div className={`absolute right-[5%] top-1/2 -translate-y-1/2 backdrop-blur rounded-2xl p-4 shadow-xl ${theme === 'dark' ? 'bg-slate-800/80 border border-gray-700' : 'bg-white/80 border border-gray-200'}`}>
-                <Atom className="w-8 h-8 text-green-400" />
-                <div className="text-xs theme-text-muted mt-1">Probabilités</div>
+              <div className={`absolute right-[5%] top-1/2 -translate-y-1/2 backdrop-blur rounded-2xl p-4 shadow-2xl ${
+                theme === 'dark' ? 'bg-slate-800/80 border border-gray-700' : 'bg-white border-2 border-gray-300'
+              }`}>
+                <Atom className={`w-8 h-8 ${theme === 'dark' ? 'text-green-400' : 'text-green-600'}`} />
+                <div className={`text-xs mt-1 ${theme === 'dark' ? 'text-gray-400' : 'text-gray-700'}`}>Probabilités</div>
               </div>
             </div>
           </div>
@@ -402,8 +439,8 @@ export default function HomePage() {
       {/* Subjects Section */}
       <section id="subjects" className="relative z-10 max-w-7xl mx-auto px-4 py-24">
         <div className="text-center mb-12">
-          <h2 className="text-3xl md:text-4xl font-bold theme-text-primary mb-4">Domaines d'enseignement</h2>
-          <p className="theme-text-secondary max-w-2xl mx-auto">
+          <h2 className={`text-3xl md:text-4xl font-bold mb-4 ${theme === 'dark' ? 'text-white' : 'text-gray-900'}`}>Domaines d'enseignement</h2>
+          <p className={`max-w-2xl mx-auto ${theme === 'dark' ? 'text-gray-300' : 'text-gray-700'}`}>
             Un accompagnement complet dans tous les domaines des mathématiques
           </p>
         </div>
@@ -422,13 +459,13 @@ export default function HomePage() {
             <div key={idx} className={`group rounded-2xl p-5 transition-all hover:-translate-y-1 ${
               theme === 'dark'
                 ? 'bg-slate-900/50 backdrop-blur border border-gray-800 hover:border-indigo-500/50'
-                : 'bg-white border-2 border-gray-300 hover:border-indigo-400 shadow-md hover:shadow-xl'
+                : 'bg-white border-2 border-gray-400 hover:border-indigo-500 shadow-lg hover:shadow-2xl'
             }`}>
-              <div className={`w-12 h-12 bg-gradient-to-br ${item.color} rounded-xl flex items-center justify-center text-white mb-3 group-hover:scale-110 transition-transform shadow-lg`}>
+              <div className={`w-12 h-12 bg-gradient-to-br ${item.color} rounded-xl flex items-center justify-center text-white mb-3 group-hover:scale-110 transition-transform shadow-xl`}>
                 {item.icon}
               </div>
-              <h3 className="font-bold theme-text-primary mb-1">{item.title}</h3>
-              <p className="text-sm theme-text-muted">{item.desc}</p>
+              <h3 className={`font-bold mb-1 ${theme === 'dark' ? 'text-white' : 'text-gray-900'}`}>{item.title}</h3>
+              <p className={`text-sm ${theme === 'dark' ? 'text-gray-400' : 'text-gray-600'}`}>{item.desc}</p>
             </div>
           ))}
         </div>
@@ -437,8 +474,8 @@ export default function HomePage() {
       {/* Booking Section */}
       <section id="booking" className="relative z-10 max-w-4xl mx-auto px-4 py-24">
         <div className="text-center mb-12">
-          <h2 className="text-3xl md:text-4xl font-bold theme-text-primary mb-4">Réservez votre cours</h2>
-          <p className="theme-text-secondary">Processus simple en 3 étapes</p>
+          <h2 className={`text-3xl md:text-4xl font-bold mb-4 ${theme === 'dark' ? 'text-white' : 'text-gray-900'}`}>Réservez votre cours</h2>
+          <p className={theme === 'dark' ? 'text-gray-300' : 'text-gray-700'}>Processus simple en 3 étapes</p>
         </div>
 
         {/* Progress Steps */}
@@ -494,8 +531,37 @@ export default function HomePage() {
               </div>
 
               <div className="mb-8">
-                <label className="block text-sm font-semibold theme-text-secondary mb-3">Date</label>
-                <div className="grid grid-cols-4 md:grid-cols-7 gap-2">
+                <div className="flex items-center justify-between mb-3">
+                  <label className="block text-sm font-semibold theme-text-secondary">Date</label>
+                  <div className="flex items-center gap-2">
+                    <button
+                      onClick={() => setCalendarMonth(Math.max(0, calendarMonth - 1))}
+                      disabled={calendarMonth === 0}
+                      className={`p-2 rounded-lg transition-all ${
+                        calendarMonth === 0
+                          ? 'opacity-30 cursor-not-allowed'
+                          : theme === 'dark' ? 'bg-slate-800 hover:bg-slate-700 text-gray-300' : 'bg-gray-100 hover:bg-gray-200 text-gray-700'
+                      }`}
+                    >
+                      <ChevronLeft className="w-4 h-4" />
+                    </button>
+                    <span className="text-sm font-medium theme-text-primary min-w-[140px] text-center capitalize">
+                      {getMonthLabel()}
+                    </span>
+                    <button
+                      onClick={() => setCalendarMonth(Math.min(2, calendarMonth + 1))}
+                      disabled={calendarMonth === 2}
+                      className={`p-2 rounded-lg transition-all ${
+                        calendarMonth === 2
+                          ? 'opacity-30 cursor-not-allowed'
+                          : theme === 'dark' ? 'bg-slate-800 hover:bg-slate-700 text-gray-300' : 'bg-gray-100 hover:bg-gray-200 text-gray-700'
+                      }`}
+                    >
+                      <ChevronRight className="w-4 h-4" />
+                    </button>
+                  </div>
+                </div>
+                <div className="grid grid-cols-7 gap-2">
                   {getAvailableDates().map(date => {
                     const dateStr = format(date, 'yyyy-MM-dd');
                     return (
@@ -505,12 +571,11 @@ export default function HomePage() {
                         className={`p-3 rounded-xl text-center transition-all ${
                           selectedDate === dateStr
                             ? 'bg-indigo-600 text-white shadow-lg shadow-indigo-500/30'
-                            : theme === 'dark' ? 'bg-slate-800/50 hover:bg-slate-800 border border-gray-700 text-gray-300' : 'bg-gray-50 hover:bg-gray-100 border border-gray-200 text-gray-700'
+                            : theme === 'dark' ? 'bg-slate-800/50 hover:bg-slate-800 border border-gray-700 text-gray-300' : 'bg-white hover:bg-indigo-50 border-2 border-gray-300 text-gray-700 hover:border-indigo-400'
                         }`}
                       >
                         <div className="text-xs font-medium">{format(date, 'EEE', { locale: fr })}</div>
                         <div className="text-lg font-bold">{format(date, 'd')}</div>
-                        <div className="text-xs">{format(date, 'MMM', { locale: fr })}</div>
                       </button>
                     );
                   })}
@@ -758,7 +823,7 @@ export default function HomePage() {
 
         {/* Pricing */}
         <div className="mt-16 text-center">
-          <h3 className="text-2xl font-bold theme-text-primary mb-8">Tarifs transparents</h3>
+          <h3 className={`text-2xl font-bold mb-8 ${theme === 'dark' ? 'text-white' : 'text-gray-900'}`}>Tarifs transparents</h3>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
             {[
               { duration: '1h', price: '45€', desc: 'Séance ponctuelle' },
@@ -767,13 +832,13 @@ export default function HomePage() {
             ].map(t => (
               <div key={t.duration} className={`p-6 rounded-2xl border-2 ${
                 t.popular
-                  ? 'border-indigo-500 bg-indigo-500/10 shadow-lg'
-                  : theme === 'dark' ? 'border-gray-800 bg-slate-900/50' : 'border-gray-300 bg-white shadow-md'
+                  ? 'border-indigo-500 bg-indigo-500/10 shadow-xl'
+                  : theme === 'dark' ? 'border-gray-800 bg-slate-900/50' : 'border-gray-400 bg-white shadow-lg'
               }`}>
-                {t.popular && <span className="text-xs font-bold text-indigo-300 bg-indigo-500/20 px-3 py-1 rounded-full">Populaire</span>}
-                <div className="text-3xl font-bold theme-text-primary mt-2">{t.price}</div>
-                <div className="theme-text-secondary">{t.duration} / séance</div>
-                <div className="text-sm theme-text-muted mt-2">{t.desc}</div>
+                {t.popular && <span className={`text-xs font-bold px-3 py-1 rounded-full ${theme === 'dark' ? 'text-indigo-300 bg-indigo-500/20' : 'text-indigo-700 bg-indigo-100'}`}>Populaire</span>}
+                <div className={`text-3xl font-bold mt-2 ${theme === 'dark' ? 'text-white' : 'text-gray-900'}`}>{t.price}</div>
+                <div className={theme === 'dark' ? 'text-gray-300' : 'text-gray-700'}>{t.duration} / séance</div>
+                <div className={`text-sm mt-2 ${theme === 'dark' ? 'text-gray-400' : 'text-gray-600'}`}>{t.desc}</div>
               </div>
             ))}
           </div>
@@ -781,37 +846,37 @@ export default function HomePage() {
       </section>
 
       {/* Footer */}
-      <footer className={`relative z-10 border-t py-8 mt-16 ${theme === 'dark' ? 'border-gray-800' : 'border-gray-200'}`}>
+      <footer className={`relative z-10 border-t py-8 mt-16 ${theme === 'dark' ? 'border-gray-800' : 'border-gray-300'}`}>
         <div className="max-w-7xl mx-auto px-4">
           <div className="flex flex-col md:flex-row items-center justify-between gap-4">
             <div className="flex items-center gap-2">
               <Sigma className="w-6 h-6 text-indigo-400" />
-              <span className="font-bold theme-text-primary">MathPro</span>
-              <span className="theme-text-muted text-sm">— Cours particuliers de mathématiques</span>
+              <span className={`font-bold ${theme === 'dark' ? 'text-white' : 'text-gray-900'}`}>MathPro</span>
+              <span className={`text-sm ${theme === 'dark' ? 'text-gray-400' : 'text-gray-600'}`}>— Cours particuliers de mathématiques</span>
             </div>
             <div className="flex items-center gap-4">
               <button
                 onClick={() => window.location.hash = '#student-login'}
-                className="flex items-center gap-2 text-sm theme-text-muted hover:theme-text-primary transition-colors"
+                className={`flex items-center gap-2 text-sm transition-colors ${theme === 'dark' ? 'text-gray-400 hover:text-white' : 'text-gray-600 hover:text-gray-900'}`}
               >
                 <UserPlus className="w-4 h-4" /> Espace élève
               </button>
               <button
                 onClick={() => window.location.hash = '#admin'}
-                className="text-sm theme-text-muted hover:theme-text-secondary transition-colors"
+                className={`text-sm transition-colors ${theme === 'dark' ? 'text-gray-400 hover:text-gray-200' : 'text-gray-600 hover:text-gray-800'}`}
               >
                 Espace professeur
               </button>
               <a
                 href="/guide-github.html"
                 target="_blank"
-                className="text-sm theme-text-muted hover:theme-text-secondary transition-colors"
+                className={`text-sm transition-colors ${theme === 'dark' ? 'text-gray-400 hover:text-gray-200' : 'text-gray-600 hover:text-gray-800'}`}
               >
                 📤 Guide GitHub
               </a>
             </div>
           </div>
-          <div className="text-center text-xs theme-text-muted mt-6">
+          <div className={`text-center text-xs mt-6 ${theme === 'dark' ? 'text-gray-400' : 'text-gray-600'}`}>
             © 2026 MathPro — Tous droits réservés
           </div>
         </div>
