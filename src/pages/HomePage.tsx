@@ -5,7 +5,7 @@ import { format, addDays } from 'date-fns';
 import { fr } from 'date-fns/locale';
 
 export default function HomePage() {
-  const { students, appointments, addAppointment, addStudent, theme, toggleTheme } = useApp();
+  const { students, appointments, addAppointment, addStudent, theme, toggleTheme, sendEmail, findStudentByEmailOrPhone } = useApp();
   const [step, setStep] = useState(1);
   const [selectedDate, setSelectedDate] = useState('');
   const [selectedTime, setSelectedTime] = useState('');
@@ -16,6 +16,8 @@ export default function HomePage() {
   const [existingStudentId, setExistingStudentId] = useState('');
   const [isExistingStudent, setIsExistingStudent] = useState(false);
   const [bookingConfirmed, setBookingConfirmed] = useState(false);
+  const [generatedPassword, setGeneratedPassword] = useState('');
+  const [isNewAccount, setIsNewAccount] = useState(false);
 
   const activeAppointments = appointments.filter(a => !a.archived && a.status !== 'cancelled');
   const availableTimes = ['08:00', '09:00', '10:00', '11:00', '14:00', '15:00', '16:00', '17:00', '18:00', '19:00'];
@@ -45,22 +47,52 @@ export default function HomePage() {
 
   const handleSubmitBooking = () => {
     let studentId = existingStudentId;
+    let password = '';
+    let isNew = false;
+
+    // Si c'est un nouvel élève (pas un élève existant sélectionné)
     if (!isExistingStudent) {
-      addStudent({
-        firstName: studentInfo.firstName,
-        lastName: studentInfo.lastName,
-        email: studentInfo.email,
-        phone: studentInfo.phone,
-        level: studentInfo.level,
-        notes: '',
-        password: Math.random().toString(36).slice(-8),
-      });
-      const allStudents = [...students];
-      studentId = allStudents[allStudents.length - 1]?.id || '';
+      // Vérifier si l'email existe déjà
+      const existingStudent = findStudentByEmailOrPhone(studentInfo.email);
+
+      if (existingStudent) {
+        // L'élève existe déjà, utiliser son compte
+        studentId = existingStudent.id;
+        password = existingStudent.password;
+        isNew = false;
+      } else {
+        // Créer un nouveau compte
+        password = Math.random().toString(36).slice(-8).toUpperCase();
+        addStudent({
+          firstName: studentInfo.firstName,
+          lastName: studentInfo.lastName,
+          email: studentInfo.email,
+          phone: studentInfo.phone,
+          level: studentInfo.level,
+          notes: '',
+          password: password,
+        });
+
+        // Récupérer l'ID du nouvel élève créé
+        const allStudents = [...students];
+        studentId = allStudents[allStudents.length - 1]?.id || '';
+        isNew = true;
+
+        // Envoyer l'email avec le mot de passe
+        sendEmail(
+          studentInfo.email,
+          `Bienvenue sur MathPro - Votre compte a été créé`,
+          `Bonjour ${studentInfo.firstName},\n\nVotre compte MathPro a été créé avec succès !\n\nVos identifiants de connexion :\n- Email : ${studentInfo.email}\n- Mot de passe : ${password}\n\nVous pouvez maintenant accéder à votre espace élève pour :\n- Consulter vos cours à venir\n- Télécharger vos factures et bons de commande\n- Uploader des documents\n- Réserver de nouveaux cours\n\nPour vous connecter, rendez-vous sur la page d'accueil et cliquez sur "Espace élève".\n\nCordialement,\nL'équipe MathPro`,
+          'password',
+          studentId
+        );
+      }
     }
+
     if (!studentId) {
       studentId = students[0]?.id || 'temp-' + Date.now();
       if (!students.find(s => s.id === studentId)) {
+        password = Math.random().toString(36).slice(-8).toUpperCase();
         addStudent({
           firstName: studentInfo.firstName || 'Nouveau',
           lastName: studentInfo.lastName || 'Élève',
@@ -68,10 +100,22 @@ export default function HomePage() {
           phone: studentInfo.phone || '',
           level: studentInfo.level || '',
           notes: '',
-          password: Math.random().toString(36).slice(-8),
+          password: password,
         });
+        isNew = true;
+
+        if (studentInfo.email) {
+          sendEmail(
+            studentInfo.email,
+            `Bienvenue sur MathPro - Votre compte a été créé`,
+            `Bonjour ${studentInfo.firstName || 'Nouveau'},\n\nVotre compte MathPro a été créé avec succès !\n\nVos identifiants de connexion :\n- Email : ${studentInfo.email}\n- Mot de passe : ${password}\n\nCordialement,\nL'équipe MathPro`,
+            'password',
+            studentId
+          );
+        }
       }
     }
+
     addAppointment({
       studentId,
       date: selectedDate,
@@ -83,6 +127,9 @@ export default function HomePage() {
       price: getPrice(),
       paid: false,
     });
+
+    setGeneratedPassword(password);
+    setIsNewAccount(isNew);
     setBookingConfirmed(true);
   };
 
@@ -97,24 +144,107 @@ export default function HomePage() {
     setExistingStudentId('');
     setIsExistingStudent(false);
     setBookingConfirmed(false);
+    setGeneratedPassword('');
+    setIsNewAccount(false);
   };
 
   if (bookingConfirmed) {
     return (
       <div className="min-h-screen theme-bg-primary flex items-center justify-center p-4">
-        <div className="theme-bg-card rounded-3xl shadow-2xl p-12 max-w-md text-center border theme-border">
+        <div className="theme-bg-card rounded-3xl shadow-2xl p-12 max-w-lg text-center border theme-border">
           <div className="w-20 h-20 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-6">
             <CheckCircle className="w-10 h-10 text-green-600" />
           </div>
           <h2 className="text-3xl font-bold theme-text-primary mb-4">Réservation confirmée !</h2>
-          <p className="theme-text-secondary mb-6">
-            Votre cours de <strong>{subject}</strong> est prévu le{' '}
-            <strong>{format(new Date(selectedDate), 'dd MMMM yyyy', { locale: fr })}</strong> à{' '}
-            <strong>{selectedTime}</strong>.
+
+          {/* Message pour nouveau compte */}
+          {isNewAccount && generatedPassword && (
+            <div className="bg-blue-50 border border-blue-200 rounded-xl p-6 mb-6 text-left">
+              <h3 className="font-bold text-blue-900 mb-3 flex items-center gap-2">
+                🎉 Votre compte a été créé !
+              </h3>
+              <p className="text-sm text-blue-800 mb-4">
+                Un email contenant vos identifiants a été envoyé à <strong>{studentInfo.email}</strong>
+              </p>
+              <div className="bg-white rounded-lg p-4 border border-blue-200">
+                <div className="text-xs text-blue-600 font-semibold mb-2">VOS IDENTIFIANTS</div>
+                <div className="space-y-2 text-sm">
+                  <div className="flex justify-between">
+                    <span className="text-gray-600">Email :</span>
+                    <span className="font-mono font-semibold text-gray-900">{studentInfo.email}</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-gray-600">Mot de passe :</span>
+                    <span className="font-mono font-bold text-blue-700 bg-blue-50 px-2 py-1 rounded">{generatedPassword}</span>
+                  </div>
+                </div>
+              </div>
+              <p className="text-xs text-blue-700 mt-3">
+                💡 Conservez ces informations, vous en aurez besoin pour vous connecter
+              </p>
+            </div>
+          )}
+
+          {/* Message pour élève existant */}
+          {!isNewAccount && (
+            <div className="bg-green-50 border border-green-200 rounded-xl p-4 mb-6 text-left">
+              <p className="text-sm text-green-800">
+                ✅ Votre réservation a été ajoutée à votre compte existant
+              </p>
+            </div>
+          )}
+
+          {/* Détails de la réservation */}
+          <div className="bg-gray-50 dark:bg-slate-800 rounded-xl p-4 mb-6 text-left">
+            <div className="text-sm font-semibold theme-text-primary mb-3">Détails de votre cours</div>
+            <div className="space-y-2 text-sm">
+              <div className="flex justify-between">
+                <span className="theme-text-secondary">Sujet :</span>
+                <span className="font-semibold theme-text-primary">{subject}</span>
+              </div>
+              <div className="flex justify-between">
+                <span className="theme-text-secondary">Date :</span>
+                <span className="font-semibold theme-text-primary">
+                  {format(new Date(selectedDate), 'dd MMMM yyyy', { locale: fr })}
+                </span>
+              </div>
+              <div className="flex justify-between">
+                <span className="theme-text-secondary">Heure :</span>
+                <span className="font-semibold theme-text-primary">{selectedTime}</span>
+              </div>
+              <div className="flex justify-between">
+                <span className="theme-text-secondary">Durée :</span>
+                <span className="font-semibold theme-text-primary">{selectedDuration} min</span>
+              </div>
+              <div className="flex justify-between pt-2 border-t border-gray-200 dark:border-gray-700">
+                <span className="theme-text-secondary">Tarif :</span>
+                <span className="font-bold text-indigo-600 text-lg">{getPrice()}€</span>
+              </div>
+            </div>
+          </div>
+
+          <p className="theme-text-secondary mb-6 text-sm">
+            Le professeur vous confirmera le créneau sous 24h.
           </p>
-          <button onClick={resetForm} className="bg-indigo-600 text-white px-8 py-3 rounded-xl font-semibold hover:bg-indigo-500 transition-all">
-            Nouvelle réservation
-          </button>
+
+          <div className="flex flex-col gap-3">
+            {isNewAccount && (
+              <button
+                onClick={() => {
+                  window.location.hash = '#student-login';
+                }}
+                className="bg-indigo-600 text-white px-8 py-3 rounded-xl font-semibold hover:bg-indigo-500 transition-all"
+              >
+                Se connecter à mon espace élève
+              </button>
+            )}
+            <button
+              onClick={resetForm}
+              className={`${isNewAccount ? 'bg-gray-200 text-gray-700 hover:bg-gray-300' : 'bg-indigo-600 text-white hover:bg-indigo-500'} px-8 py-3 rounded-xl font-semibold transition-all`}
+            >
+              {isNewAccount ? 'Nouvelle réservation' : 'Nouvelle réservation'}
+            </button>
+          </div>
         </div>
       </div>
     );
