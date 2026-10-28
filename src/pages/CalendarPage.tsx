@@ -5,7 +5,7 @@ import { format, startOfMonth, endOfMonth, eachDayOfInterval, isSameMonth, isSam
 import { fr } from 'date-fns/locale';
 
 export default function CalendarPage() {
-  const { appointments, students, getStudentById, confirmAppointment, cancelAppointment, deleteAppointment, archiveAppointment, updateAppointment } = useApp();
+  const { appointments, students, getStudentById, confirmAppointment, cancelAppointment, deleteAppointment, archiveAppointment, completeAppointment } = useApp();
   const [currentMonth, setCurrentMonth] = useState(new Date());
   const [selectedDay, setSelectedDay] = useState<Date | null>(null);
   const [selectedAppointment, setSelectedAppointment] = useState<string | null>(null);
@@ -42,7 +42,7 @@ export default function CalendarPage() {
   };
 
   const handleMarkCompleted = (id: string) => {
-    updateAppointment(id, { status: 'completed', paid: true });
+    completeAppointment(id);
   };
 
   const getStatusColor = (status: string) => {

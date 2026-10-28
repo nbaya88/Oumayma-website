@@ -30,7 +30,7 @@ export default function StudentsPage() {
     if (editingId) {
       updateStudent(editingId, form);
     } else {
-      addStudent(form);
+      addStudent({ ...form, password: Math.random().toString(36).slice(-8) });
     }
     setShowForm(false);
     setEditingId(null);

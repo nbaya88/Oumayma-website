@@ -6,29 +6,47 @@ import CalendarPage from './pages/CalendarPage';
 import StudentsPage from './pages/StudentsPage';
 import InvoicesPage from './pages/InvoicesPage';
 import ArchivesPage from './pages/ArchivesPage';
+import SettingsPage from './pages/SettingsPage';
+import StudentLoginPage from './pages/StudentLoginPage';
+import StudentDashboardPage from './pages/StudentDashboardPage';
+import StudentProfilePage from './pages/StudentProfilePage';
 import AdminLayout from './components/AdminLayout';
 import { Page } from './types';
 
 function AppContent() {
-  const { isAdmin, setIsAdmin } = useApp();
+  const { isAdmin, setIsAdmin, currentStudentId, getStudentById } = useApp();
   const [currentPage, setCurrentPage] = useState<Page>('home');
   const [showLoginModal, setShowLoginModal] = useState(false);
   const [password, setPassword] = useState('');
 
-  // Check URL hash for admin access
+  // Check URL hash for admin/student access
   useEffect(() => {
     const handleHashChange = () => {
-      if (window.location.hash === '#admin') {
+      const hash = window.location.hash;
+      if (hash === '#admin') {
         setShowLoginModal(true);
+      } else if (hash === '#student-login') {
+        setCurrentPage('student-login');
+      } else if (hash === '#student-dashboard' && currentStudentId) {
+        setCurrentPage('student-dashboard');
+      } else if (hash === '#student-profile' && currentStudentId) {
+        setCurrentPage('student-profile');
       }
     };
     handleHashChange();
     window.addEventListener('hashchange', handleHashChange);
     return () => window.removeEventListener('hashchange', handleHashChange);
-  }, []);
+  }, [currentStudentId]);
+
+  // Auto-navigate to student dashboard if logged in
+  useEffect(() => {
+    if (currentStudentId && currentPage === 'student-login') {
+      setCurrentPage('student-dashboard');
+      window.location.hash = '#student-dashboard';
+    }
+  }, [currentStudentId, currentPage]);
 
   const handleLogin = () => {
-    // Simple password check (in production, use proper auth)
     if (password === 'prof2026' || password === 'admin') {
       setIsAdmin(true);
       setCurrentPage('dashboard');
@@ -40,6 +58,18 @@ function AppContent() {
     }
   };
 
+  // Student views
+  if (currentStudentId && !isAdmin) {
+    if (currentPage === 'student-profile') {
+      return <StudentProfilePage />;
+    }
+    if (currentPage === 'student-dashboard' || currentPage === 'student-login') {
+      return <StudentDashboardPage />;
+    }
+    return <StudentDashboardPage />;
+  }
+
+  // Admin views
   if (isAdmin && currentPage !== 'home') {
     return (
       <AdminLayout currentPage={currentPage} onPageChange={setCurrentPage}>
@@ -48,15 +78,22 @@ function AppContent() {
         {currentPage === 'students' && <StudentsPage />}
         {currentPage === 'invoices' && <InvoicesPage />}
         {currentPage === 'archives' && <ArchivesPage />}
+        {currentPage === 'settings' && <SettingsPage />}
       </AdminLayout>
     );
   }
 
+  // Student login page
+  if (currentPage === 'student-login') {
+    return <StudentLoginPage />;
+  }
+
+  // Home page
   return (
     <>
       <HomePage />
 
-      {/* Login Modal */}
+      {/* Admin Login Modal */}
       {showLoginModal && (
         <div className="fixed inset-0 bg-black/60 flex items-center justify-center z-50 p-4">
           <div className="bg-white rounded-2xl shadow-2xl max-w-sm w-full p-8">

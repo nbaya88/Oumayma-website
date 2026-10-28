@@ -1,0 +1,549 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Guide GitHub — MathPro</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap');
+    body { font-family: 'Inter', sans-serif; }
+    .code-block { position: relative; }
+    .code-block .copy-btn {
+      position: absolute; top: 8px; right: 8px;
+      opacity: 0; transition: opacity 0.2s;
+    }
+    .code-block:hover .copy-btn { opacity: 1; }
+    .step-line { position: absolute; left: 23px; top: 48px; bottom: 0; width: 2px; }
+    .fade-in { animation: fadeIn 0.5s ease-out; }
+    @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+    .pulse { animation: pulse 2s infinite; }
+    @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.5; } }
+  </style>
+</head>
+<body class="bg-gray-50 min-h-screen">
+
+  <!-- Header -->
+  <header class="bg-gradient-to-r from-gray-900 to-gray-800 text-white py-8">
+    <div class="max-w-4xl mx-auto px-6">
+      <div class="flex items-center gap-3 mb-4">
+        <svg class="w-10 h-10" viewBox="0 0 24 24" fill="currentColor">
+          <path d="M12 0c-6.626 0-12 5.373-12 12 0 5.302 3.438 9.8 8.207 11.387.599.111.793-.261.793-.577v-2.234c-3.338.726-4.033-1.416-4.033-1.416-.546-1.387-1.333-1.756-1.333-1.756-1.089-.745.083-.729.083-.729 1.205.084 1.839 1.237 1.839 1.237 1.07 1.834 2.807 1.304 3.492.997.107-.775.418-1.305.762-1.604-2.665-.305-5.467-1.334-5.467-5.931 0-1.311.469-2.381 1.236-3.221-.124-.303-.535-1.524.117-3.176 0 0 1.008-.322 3.301 1.23.957-.266 1.983-.399 3.003-.404 1.02.005 2.047.138 3.006.404 2.291-1.552 3.297-1.23 3.297-1.23.653 1.653.242 2.874.118 3.176.77.84 1.235 1.911 1.235 3.221 0 4.609-2.807 5.624-5.479 5.921.43.372.823 1.102.823 2.222v3.293c0 .319.192.694.801.576 4.765-1.589 8.199-6.086 8.199-11.386 0-6.627-5.373-12-12-12z"/>
+        </svg>
+        <div>
+          <h1 class="text-3xl font-bold">Guide GitHub</h1>
+          <p class="text-gray-400">Procédure complète pour uploader MathPro</p>
+        </div>
+      </div>
+      <div class="flex items-center gap-4 text-sm text-gray-400">
+        <span>⏱️ Durée estimée : 10-15 minutes</span>
+        <span>•</span>
+        <span>📋 5 étapes simples</span>
+      </div>
+    </div>
+  </header>
+
+  <!-- Progress Bar -->
+  <div class="bg-white border-b border-gray-200 sticky top-0 z-50">
+    <div class="max-w-4xl mx-auto px-6 py-3">
+      <div class="flex items-center gap-2">
+        <div id="progress-bar" class="h-2 bg-gray-200 rounded-full flex-1 overflow-hidden">
+          <div id="progress-fill" class="h-full bg-indigo-600 rounded-full transition-all duration-500" style="width: 0%"></div>
+        </div>
+        <span id="progress-text" class="text-sm font-medium text-gray-500">0/5</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Main Content -->
+  <main class="max-w-4xl mx-auto px-6 py-12">
+
+    <!-- Prerequisites -->
+    <div class="bg-amber-50 border border-amber-200 rounded-2xl p-6 mb-12">
+      <h2 class="text-lg font-bold text-amber-800 mb-3 flex items-center gap-2">
+        ⚠️ Prérequis — À installer avant de commencer
+      </h2>
+      <div class="grid md:grid-cols-2 gap-4">
+        <a href="https://git-scm.com/downloads" target="_blank" class="flex items-center gap-3 p-3 bg-white rounded-xl border border-amber-200 hover:border-amber-400 transition-colors">
+          <div class="w-10 h-10 bg-orange-100 rounded-lg flex items-center justify-center text-orange-600 font-bold">1</div>
+          <div>
+            <div class="font-semibold text-gray-900">Git</div>
+            <div class="text-xs text-gray-500">git-scm.com/downloads</div>
+          </div>
+        </a>
+        <a href="https://github.com/signup" target="_blank" class="flex items-center gap-3 p-3 bg-white rounded-xl border border-amber-200 hover:border-amber-400 transition-colors">
+          <div class="w-10 h-10 bg-gray-100 rounded-lg flex items-center justify-center">
+            <svg class="w-6 h-6" viewBox="0 0 24 24" fill="currentColor"><path d="M12 0c-6.626 0-12 5.373-12 12 0 5.302 3.438 9.8 8.207 11.387.599.111.793-.261.793-.577v-2.234c-3.338.726-4.033-1.416-4.033-1.416-.546-1.387-1.333-1.756-1.333-1.756-1.089-.745.083-.729.083-.729 1.205.084 1.839 1.237 1.839 1.237 1.07 1.834 2.807 1.304 3.492.997.107-.775.418-1.305.762-1.604-2.665-.305-5.467-1.334-5.467-5.931 0-1.311.469-2.381 1.236-3.221-.124-.303-.535-1.524.117-3.176 0 0 1.008-.322 3.301 1.23.957-.266 1.983-.399 3.003-.404 1.02.005 2.047.138 3.006.404 2.291-1.552 3.297-1.23 3.297-1.23.653 1.653.242 2.874.118 3.176.77.84 1.235 1.911 1.235 3.221 0 4.609-2.807 5.624-5.479 5.921.43.372.823 1.102.823 2.222v3.293c0 .319.192.694.801.576 4.765-1.589 8.199-6.086 8.199-11.386 0-6.627-5.373-12-12-12z"/></svg>
+          </div>
+          <div>
+            <div class="font-semibold text-gray-900">Compte GitHub</div>
+            <div class="text-xs text-gray-500">github.com/signup</div>
+          </div>
+        </a>
+      </div>
+      <p class="mt-3 text-sm text-amber-700">💡 Vérifiez que Git est installé : ouvrez un terminal et tapez <code class="bg-amber-100 px-1 rounded">git --version</code></p>
+    </div>
+
+    <!-- Steps -->
+    <div class="space-y-8">
+
+      <!-- STEP 1 -->
+      <div class="step-card fade-in" data-step="1">
+        <div class="flex gap-6">
+          <div class="flex flex-col items-center">
+            <div class="w-12 h-12 bg-indigo-600 rounded-full flex items-center justify-center text-white font-bold text-lg shadow-lg">1</div>
+            <div class="step-line bg-gray-200 mt-2"></div>
+          </div>
+          <div class="flex-1 pb-8">
+            <h3 class="text-xl font-bold text-gray-900 mb-2">Créer le dépôt sur GitHub</h3>
+            <p class="text-gray-600 mb-4">Connectez-vous à GitHub et créez un nouveau dépôt vide.</p>
+
+            <div class="bg-white rounded-xl border border-gray-200 overflow-hidden mb-4">
+              <div class="bg-gray-50 px-4 py-3 border-b border-gray-200 flex items-center gap-2">
+                <div class="w-3 h-3 rounded-full bg-red-400"></div>
+                <div class="w-3 h-3 rounded-full bg-yellow-400"></div>
+                <div class="w-3 h-3 rounded-full bg-green-400"></div>
+                <span class="text-xs text-gray-500 ml-2">github.com/new</span>
+              </div>
+              <div class="p-6 space-y-4">
+                <div>
+                  <label class="text-sm font-medium text-gray-700">Repository name</label>
+                  <div class="mt-1 border border-gray-300 rounded-lg px-3 py-2 bg-white flex items-center">
+                    <span class="text-gray-400 text-sm">github.com/votre-username/</span>
+                    <span class="text-gray-900 font-medium text-sm">mathpro</span>
+                  </div>
+                </div>
+                <div>
+                  <label class="text-sm font-medium text-gray-700">Description (optionnel)</label>
+                  <div class="mt-1 border border-gray-300 rounded-lg px-3 py-2 text-sm text-gray-400">
+                    Gestion des réservations — Professeur de mathématiques
+                  </div>
+                </div>
+                <div class="space-y-2">
+                  <label class="flex items-center gap-2">
+                    <div class="w-4 h-4 border-2 border-gray-300 rounded"></div>
+                    <span class="text-sm text-gray-600">Public</span>
+                  </label>
+                  <label class="flex items-center gap-2">
+                    <div class="w-4 h-4 border-2 border-indigo-600 rounded bg-indigo-600 flex items-center justify-center">
+                      <svg class="w-3 h-3 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7"/></svg>
+                    </div>
+                    <span class="text-sm text-gray-900 font-medium">Private</span>
+                    <span class="text-xs text-gray-400 ml-1">(recommandé)</span>
+                  </label>
+                </div>
+                <div class="space-y-2 pt-2">
+                  <p class="text-xs text-red-500 font-medium">⚠️ IMPORTANT — Ne cochez PAS ces options :</p>
+                  <label class="flex items-center gap-2 opacity-50">
+                    <div class="w-4 h-4 border-2 border-gray-300 rounded"></div>
+                    <span class="text-sm text-gray-400 line-through">Add a README file</span>
+                  </label>
+                  <label class="flex items-center gap-2 opacity-50">
+                    <div class="w-4 h-4 border-2 border-gray-300 rounded"></div>
+                    <span class="text-sm text-gray-400 line-through">Add .gitignore</span>
+                  </label>
+                  <label class="flex items-center gap-2 opacity-50">
+                    <div class="w-4 h-4 border-2 border-gray-300 rounded"></div>
+                    <span class="text-sm text-gray-400 line-through">Choose a license</span>
+                  </label>
+                </div>
+                <button class="bg-green-600 text-white px-4 py-2 rounded-lg text-sm font-medium">Create repository</button>
+              </div>
+            </div>
+
+            <div class="bg-blue-50 border border-blue-200 rounded-xl p-4">
+              <p class="text-sm text-blue-800">
+                <strong>💡 Pourquoi ne rien cocher ?</strong> Votre projet local a déjà un README et un .gitignore. 
+                Si vous les créez aussi sur GitHub, vous aurez un conflit lors du premier push.
+              </p>
+            </div>
+
+            <button onclick="completeStep(1)" class="mt-4 px-4 py-2 bg-indigo-100 text-indigo-700 rounded-lg text-sm font-medium hover:bg-indigo-200 transition-colors">
+              ✓ Étape terminée
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- STEP 2 -->
+      <div class="step-card fade-in" data-step="2">
+        <div class="flex gap-6">
+          <div class="flex flex-col items-center">
+            <div class="w-12 h-12 bg-gray-300 rounded-full flex items-center justify-center text-white font-bold text-lg">2</div>
+            <div class="step-line bg-gray-200 mt-2"></div>
+          </div>
+          <div class="flex-1 pb-8">
+            <h3 class="text-xl font-bold text-gray-900 mb-2">Ouvrir le terminal</h3>
+            <p class="text-gray-600 mb-4">Ouvrez un terminal dans le dossier de votre projet.</p>
+
+            <div class="grid md:grid-cols-3 gap-3 mb-4">
+              <div class="bg-white rounded-xl border border-gray-200 p-4">
+                <div class="text-2xl mb-2">🪟</div>
+                <div class="font-semibold text-sm text-gray-900">Windows</div>
+                <p class="text-xs text-gray-500 mt-1">Ouvrez le dossier du projet, puis <strong>Shift + clic droit</strong> → "Ouvrir PowerShell ici"</p>
+              </div>
+              <div class="bg-white rounded-xl border border-gray-200 p-4">
+                <div class="text-2xl mb-2">🍎</div>
+                <div class="font-semibold text-sm text-gray-900">macOS</div>
+                <p class="text-xs text-gray-500 mt-1">Ouvrez <strong>Terminal</strong> et naviguez vers le dossier avec <code class="bg-gray-100 px-1 rounded">cd</code></p>
+              </div>
+              <div class="bg-white rounded-xl border border-gray-200 p-4">
+                <div class="text-2xl mb-2">💻</div>
+                <div class="font-semibold text-sm text-gray-900">VS Code</div>
+                <p class="text-xs text-gray-500 mt-1">Ouvrez le projet dans VS Code puis <strong>Ctrl + `</strong> (terminal intégré)</p>
+              </div>
+            </div>
+
+            <div class="code-block bg-gray-900 rounded-xl p-4 text-sm">
+              <button onclick="copyCode(this)" class="copy-btn bg-gray-700 hover:bg-gray-600 text-white px-2 py-1 rounded text-xs">Copier</button>
+              <code class="text-green-400">$</code> <code class="text-gray-300">cd /chemin/vers/votre/projet/mathpro</code>
+            </div>
+
+            <button onclick="completeStep(2)" class="mt-4 px-4 py-2 bg-indigo-100 text-indigo-700 rounded-lg text-sm font-medium hover:bg-indigo-200 transition-colors">
+              ✓ Étape terminée
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- STEP 3 -->
+      <div class="step-card fade-in" data-step="3">
+        <div class="flex gap-6">
+          <div class="flex flex-col items-center">
+            <div class="w-12 h-12 bg-gray-300 rounded-full flex items-center justify-center text-white font-bold text-lg">3</div>
+            <div class="step-line bg-gray-200 mt-2"></div>
+          </div>
+          <div class="flex-1 pb-8">
+            <h3 class="text-xl font-bold text-gray-900 mb-2">Initialiser Git et créer le premier commit</h3>
+            <p class="text-gray-600 mb-4">Ces commandes préparent votre projet pour Git.</p>
+
+            <div class="space-y-3">
+              <div class="code-block bg-gray-900 rounded-xl p-4 text-sm">
+                <button onclick="copyCode(this)" class="copy-btn bg-gray-700 hover:bg-gray-600 text-white px-2 py-1 rounded text-xs">Copier</button>
+                <div class="space-y-1">
+                  <div><code class="text-green-400">$</code> <code class="text-gray-300">git init</code></div>
+                  <div class="text-gray-500 text-xs ml-4">→ Initialise un dépôt Git vide dans le dossier</div>
+                </div>
+              </div>
+
+              <div class="code-block bg-gray-900 rounded-xl p-4 text-sm">
+                <button onclick="copyCode(this)" class="copy-btn bg-gray-700 hover:bg-gray-600 text-white px-2 py-1 rounded text-xs">Copier</button>
+                <div class="space-y-1">
+                  <div><code class="text-green-400">$</code> <code class="text-gray-300">git add .</code></div>
+                  <div class="text-gray-500 text-xs ml-4">→ Ajoute tous les fichiers (sauf ceux du .gitignore)</div>
+                </div>
+              </div>
+
+              <div class="code-block bg-gray-900 rounded-xl p-4 text-sm">
+                <button onclick="copyCode(this)" class="copy-btn bg-gray-700 hover:bg-gray-600 text-white px-2 py-1 rounded text-xs">Copier</button>
+                <div class="space-y-1">
+                  <div><code class="text-green-400">$</code> <code class="text-gray-300">git commit -m "🎓 Initial commit - MathPro"</code></div>
+                  <div class="text-gray-500 text-xs ml-4">→ Crée le premier instantané de votre projet</div>
+                </div>
+              </div>
+
+              <div class="code-block bg-gray-900 rounded-xl p-4 text-sm">
+                <button onclick="copyCode(this)" class="copy-btn bg-gray-700 hover:bg-gray-600 text-white px-2 py-1 rounded text-xs">Copier</button>
+                <div class="space-y-1">
+                  <div><code class="text-green-400">$</code> <code class="text-gray-300">git branch -M main</code></div>
+                  <div class="text-gray-500 text-xs ml-4">→ Renomme la branche en "main" (standard GitHub)</div>
+                </div>
+              </div>
+            </div>
+
+            <div class="bg-green-50 border border-green-200 rounded-xl p-4 mt-4">
+              <p class="text-sm text-green-800">
+                <strong>✅ Comment vérifier ?</strong> Tapez <code class="bg-green-100 px-1 rounded">git status</code> — vous devriez voir 
+                "nothing to commit, working tree clean"
+              </p>
+            </div>
+
+            <button onclick="completeStep(3)" class="mt-4 px-4 py-2 bg-indigo-100 text-indigo-700 rounded-lg text-sm font-medium hover:bg-indigo-200 transition-colors">
+              ✓ Étape terminée
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- STEP 4 -->
+      <div class="step-card fade-in" data-step="4">
+        <div class="flex gap-6">
+          <div class="flex flex-col items-center">
+            <div class="w-12 h-12 bg-gray-300 rounded-full flex items-center justify-center text-white font-bold text-lg">4</div>
+            <div class="step-line bg-gray-200 mt-2"></div>
+          </div>
+          <div class="flex-1 pb-8">
+            <h3 class="text-xl font-bold text-gray-900 mb-2">Connecter le projet à GitHub</h3>
+            <p class="text-gray-600 mb-4">Liez votre projet local au dépôt distant que vous avez créé à l'étape 1.</p>
+
+            <div class="code-block bg-gray-900 rounded-xl p-4 text-sm mb-4">
+              <button onclick="copyCode(this)" class="copy-btn bg-gray-700 hover:bg-gray-600 text-white px-2 py-1 rounded text-xs">Copier</button>
+              <div class="space-y-1">
+                <div><code class="text-green-400">$</code> <code class="text-gray-300">git remote add origin https://github.com/<span class="text-yellow-300">VOTRE_USERNAME</span>/<span class="text-yellow-300">mathpro</span>.git</code></div>
+                <div class="text-gray-500 text-xs ml-4">→ Remplacez VOTRE_USERNAME par votre nom d'utilisateur GitHub</div>
+              </div>
+            </div>
+
+            <div class="bg-white rounded-xl border border-gray-200 p-4 mb-4">
+              <p class="text-sm font-medium text-gray-700 mb-2">📋 Où trouver l'URL de votre dépôt ?</p>
+              <div class="flex items-center gap-3 p-3 bg-gray-50 rounded-lg">
+                <div class="w-8 h-8 bg-gray-200 rounded flex items-center justify-center">
+                  <svg class="w-4 h-4 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1"/></svg>
+                </div>
+                <div class="text-sm text-gray-600">
+                  Sur la page de votre dépôt GitHub, cliquez le bouton vert <strong>"<> Code"</strong> et copiez l'URL HTTPS
+                </div>
+              </div>
+            </div>
+
+            <button onclick="completeStep(4)" class="mt-4 px-4 py-2 bg-indigo-100 text-indigo-700 rounded-lg text-sm font-medium hover:bg-indigo-200 transition-colors">
+              ✓ Étape terminée
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- STEP 5 -->
+      <div class="step-card fade-in" data-step="5">
+        <div class="flex gap-6">
+          <div class="flex flex-col items-center">
+            <div class="w-12 h-12 bg-gray-300 rounded-full flex items-center justify-center text-white font-bold text-lg">5</div>
+          </div>
+          <div class="flex-1 pb-8">
+            <h3 class="text-xl font-bold text-gray-900 mb-2">Envoyer le code sur GitHub 🚀</h3>
+            <p class="text-gray-600 mb-4">Dernière étape ! Envoyez votre code vers GitHub.</p>
+
+            <div class="code-block bg-gray-900 rounded-xl p-4 text-sm mb-4">
+              <button onclick="copyCode(this)" class="copy-btn bg-gray-700 hover:bg-gray-600 text-white px-2 py-1 rounded text-xs">Copier</button>
+              <div class="space-y-1">
+                <div><code class="text-green-400">$</code> <code class="text-gray-300">git push -u origin main</code></div>
+                <div class="text-gray-500 text-xs ml-4">→ Envoie tout votre code vers GitHub</div>
+              </div>
+            </div>
+
+            <div class="bg-amber-50 border border-amber-200 rounded-xl p-4 mb-4">
+              <p class="text-sm font-medium text-amber-800 mb-2">🔐 GitHub va vous demander de vous authentifier</p>
+              <div class="space-y-3 text-sm text-amber-700">
+                <p><strong>Option A — Personal Access Token (le plus simple) :</strong></p>
+                <ol class="list-decimal list-inside space-y-1 ml-2">
+                  <li>Allez sur <a href="https://github.com/settings/tokens" target="_blank" class="underline font-medium">github.com/settings/tokens</a></li>
+                  <li>Cliquez <strong>"Generate new token (classic)"</strong></li>
+                  <li>Cochez la permission <strong>"repo"</strong></li>
+                  <li>Cliquez <strong>"Generate token"</strong></li>
+                  <li><strong>Copiez le token</strong> (il ne sera plus visible après !)</li>
+                  <li>Quand Git demande le mot de passe → <strong>collez le token</strong></li>
+                </ol>
+              </div>
+            </div>
+
+            <div class="bg-green-50 border border-green-200 rounded-xl p-4">
+              <p class="text-sm text-green-800">
+                <strong>🎉 C'est terminé !</strong> Allez sur la page de votre dépôt GitHub et rafraîchissez — votre code devrait être là !
+              </p>
+            </div>
+
+            <button onclick="completeStep(5)" class="mt-4 px-4 py-2 bg-green-600 text-white rounded-lg text-sm font-medium hover:bg-green-700 transition-colors">
+              ✓ Tout est terminé ! 🎉
+            </button>
+          </div>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- Success Message -->
+    <div id="success-message" class="hidden mt-12 bg-gradient-to-r from-green-500 to-emerald-600 rounded-2xl p-8 text-white text-center">
+      <div class="text-5xl mb-4">🎉</div>
+      <h3 class="text-2xl font-bold mb-2">Félicitations !</h3>
+      <p class="text-green-100">Votre projet MathPro est maintenant sur GitHub !</p>
+      <div class="mt-6 flex flex-wrap justify-center gap-3">
+        <a href="https://github.com" target="_blank" class="px-4 py-2 bg-white/20 rounded-lg text-sm font-medium hover:bg-white/30 transition-colors">
+          Voir mon dépôt →
+        </a>
+      </div>
+    </div>
+
+    <!-- Bonus Section -->
+    <div class="mt-16 border-t border-gray-200 pt-12">
+      <h2 class="text-2xl font-bold text-gray-900 mb-6 text-center">🚀 Bonus : Mettre le site en ligne</h2>
+      <p class="text-gray-600 text-center mb-8">Une fois sur GitHub, déployez gratuitement votre site en 2 minutes</p>
+
+      <div class="grid md:grid-cols-3 gap-4">
+        <div class="bg-white rounded-2xl border border-gray-200 p-6 hover:shadow-lg transition-shadow">
+          <div class="w-12 h-12 bg-black rounded-xl flex items-center justify-center text-white font-bold mb-4">▲</div>
+          <h4 class="font-bold text-gray-900 mb-2">Vercel</h4>
+          <p class="text-sm text-gray-500 mb-3">Le plus simple — connexion en 1 clic avec GitHub</p>
+          <div class="code-block bg-gray-900 rounded-lg p-3 text-xs">
+            <code class="text-gray-300">npx vercel</code>
+          </div>
+          <a href="https://vercel.com" target="_blank" class="mt-3 text-sm text-indigo-600 font-medium hover:text-indigo-700">vercel.com →</a>
+        </div>
+
+        <div class="bg-white rounded-2xl border border-gray-200 p-6 hover:shadow-lg transition-shadow">
+          <div class="w-12 h-12 bg-teal-500 rounded-xl flex items-center justify-center text-white font-bold mb-4">N</div>
+          <h4 class="font-bold text-gray-900 mb-2">Netlify</h4>
+          <p class="text-sm text-gray-500 mb-3">Glissez-déposez le dossier dist/ pour déployer</p>
+          <div class="code-block bg-gray-900 rounded-lg p-3 text-xs">
+            <code class="text-gray-300">npm run build</code><br>
+            <code class="text-gray-500 text-xs">→ glissez dist/ sur netlify</code>
+          </div>
+          <a href="https://app.netlify.com/drop" target="_blank" class="mt-3 text-sm text-indigo-600 font-medium hover:text-indigo-700">netlify.com/drop →</a>
+        </div>
+
+        <div class="bg-white rounded-2xl border border-gray-200 p-6 hover:shadow-lg transition-shadow">
+          <div class="w-12 h-12 bg-gray-800 rounded-xl flex items-center justify-center mb-4">
+            <svg class="w-6 h-6 text-white" viewBox="0 0 24 24" fill="currentColor"><path d="M12 0c-6.626 0-12 5.373-12 12 0 5.302 3.438 9.8 8.207 11.387.599.111.793-.261.793-.577v-2.234c-3.338.726-4.033-1.416-4.033-1.416-.546-1.387-1.333-1.756-1.333-1.756-1.089-.745.083-.729.083-.729 1.205.084 1.839 1.237 1.839 1.237 1.07 1.834 2.807 1.304 3.492.997.107-.775.418-1.305.762-1.604-2.665-.305-5.467-1.334-5.467-5.931 0-1.311.469-2.381 1.236-3.221-.124-.303-.535-1.524.117-3.176 0 0 1.008-.322 3.301 1.23.957-.266 1.983-.399 3.003-.404 1.02.005 2.047.138 3.006.404 2.291-1.552 3.297-1.23 3.297-1.23.653 1.653.242 2.874.118 3.176.77.84 1.235 1.911 1.235 3.221 0 4.609-2.807 5.624-5.479 5.921.43.372.823 1.102.823 2.222v3.293c0 .319.192.694.801.576 4.765-1.589 8.199-6.086 8.199-11.386 0-6.627-5.373-12-12-12z"/></svg>
+          </div>
+          <h4 class="font-bold text-gray-900 mb-2">GitHub Pages</h4>
+          <p class="text-sm text-gray-500 mb-3">Gratuit et intégré directement à votre dépôt</p>
+          <div class="text-xs text-gray-500">
+            Settings → Pages → Source : GitHub Actions
+          </div>
+          <a href="https://pages.github.com" target="_blank" class="mt-3 text-sm text-indigo-600 font-medium hover:text-indigo-700">pages.github.com →</a>
+        </div>
+      </div>
+    </div>
+
+    <!-- Commands Recap -->
+    <div class="mt-16 bg-gray-900 rounded-2xl p-8">
+      <h3 class="text-xl font-bold text-white mb-4 flex items-center gap-2">
+        📋 Récapitulatif — Toutes les commandes
+      </h3>
+      <p class="text-gray-400 text-sm mb-6">Copiez-collez ce bloc complet dans votre terminal (remplacez les valeurs en jaune) :</p>
+      <div class="code-block bg-black rounded-xl p-6 text-sm relative">
+        <button onclick="copyCode(this)" class="copy-btn bg-gray-700 hover:bg-gray-600 text-white px-3 py-1 rounded text-xs">Copier tout</button>
+        <pre class="text-gray-300 overflow-x-auto"><code>git init
+git add .
+git commit -m "🎓 Initial commit - MathPro"
+git branch -M main
+git remote add origin https://github.com/<span class="text-yellow-300">VOTRE_USERNAME</span>/<span class="text-yellow-300">mathpro</span>.git
+git push -u origin main</code></pre>
+      </div>
+    </div>
+
+    <!-- FAQ -->
+    <div class="mt-16">
+      <h2 class="text-2xl font-bold text-gray-900 mb-6 text-center">❓ Questions fréquentes</h2>
+      <div class="space-y-3">
+        <details class="bg-white rounded-xl border border-gray-200 overflow-hidden group">
+          <summary class="px-6 py-4 cursor-pointer font-medium text-gray-900 hover:bg-gray-50 flex items-center justify-between">
+            J'ai une erreur "fatal: remote origin already exists"
+            <svg class="w-5 h-5 text-gray-400 group-open:rotate-180 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
+          </summary>
+          <div class="px-6 pb-4 text-sm text-gray-600">
+            Le remote est déjà configuré. Supprimez-le et recréez-le :
+            <div class="code-block bg-gray-900 rounded-lg p-3 mt-2 text-xs">
+              <code class="text-gray-300">git remote remove origin</code><br>
+              <code class="text-gray-300">git remote add origin https://github.com/USERNAME/mathpro.git</code>
+            </div>
+          </div>
+        </details>
+
+        <details class="bg-white rounded-xl border border-gray-200 overflow-hidden group">
+          <summary class="px-6 py-4 cursor-pointer font-medium text-gray-900 hover:bg-gray-50 flex items-center justify-between">
+            J'ai une erreur "failed to push some refs"
+            <svg class="w-5 h-5 text-gray-400 group-open:rotate-180 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
+          </summary>
+          <div class="px-6 pb-4 text-sm text-gray-600">
+            Votre dépôt GitHub n'est pas vide. Forcez le push :
+            <div class="code-block bg-gray-900 rounded-lg p-3 mt-2 text-xs">
+              <code class="text-gray-300">git push -u origin main --force</code>
+            </div>
+            <p class="mt-2 text-amber-600">⚠️ Attention : cela écrasera le contenu distant.</p>
+          </div>
+        </details>
+
+        <details class="bg-white rounded-xl border border-gray-200 overflow-hidden group">
+          <summary class="px-6 py-4 cursor-pointer font-medium text-gray-900 hover:bg-gray-50 flex items-center justify-between">
+            Comment modifier mon code après le push ?
+            <svg class="w-5 h-5 text-gray-400 group-open:rotate-180 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
+          </summary>
+          <div class="px-6 pb-4 text-sm text-gray-600">
+            Après chaque modification, faites simplement :
+            <div class="code-block bg-gray-900 rounded-lg p-3 mt-2 text-xs">
+              <code class="text-gray-300">git add .</code><br>
+              <code class="text-gray-300">git commit -m "Description des changements"</code><br>
+              <code class="text-gray-300">git push</code>
+            </div>
+          </div>
+        </details>
+
+        <details class="bg-white rounded-xl border border-gray-200 overflow-hidden group">
+          <summary class="px-6 py-4 cursor-pointer font-medium text-gray-900 hover:bg-gray-50 flex items-center justify-between">
+            Le mot de passe ne fonctionne pas / on me demande un token
+            <svg class="w-5 h-5 text-gray-400 group-open:rotate-180 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
+          </summary>
+          <div class="px-6 pb-4 text-sm text-gray-600">
+            Depuis 2021, GitHub n'accepte plus les mots de passe pour Git. Vous devez créer un <strong>Personal Access Token</strong> :
+            <ol class="list-decimal list-inside mt-2 space-y-1">
+              <li><a href="https://github.com/settings/tokens" target="_blank" class="text-indigo-600 underline">github.com/settings/tokens</a></li>
+              <li>"Generate new token (classic)"</li>
+              <li>Cochez "repo" → Generate</li>
+              <li>Utilisez ce token comme mot de passe</li>
+            </ol>
+          </div>
+        </details>
+      </div>
+    </div>
+
+  </main>
+
+  <!-- Footer -->
+  <footer class="bg-gray-900 text-gray-400 py-8 mt-16">
+    <div class="max-w-4xl mx-auto px-6 text-center text-sm">
+      <p>Guide créé pour <strong class="text-white">MathPro</strong> — Gestion des réservations</p>
+    </div>
+  </footer>
+
+  <script>
+    const completedSteps = new Set();
+
+    function completeStep(step) {
+      completedSteps.add(step);
+      updateProgress();
+
+      // Update step circle
+      const stepCard = document.querySelector(`[data-step="${step}"]`);
+      const circle = stepCard.querySelector('.w-12.h-12');
+      circle.classList.remove('bg-gray-300');
+      circle.classList.add('bg-green-500');
+      circle.innerHTML = '<svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7"/></svg>';
+
+      // Activate next step
+      const nextStep = step + 1;
+      const nextCard = document.querySelector(`[data-step="${nextStep}"]`);
+      if (nextCard) {
+        const nextCircle = nextCard.querySelector('.w-12.h-12');
+        nextCircle.classList.remove('bg-gray-300');
+        nextCircle.classList.add('bg-indigo-600');
+      }
+
+      // Show success if all done
+      if (completedSteps.size === 5) {
+        document.getElementById('success-message').classList.remove('hidden');
+        document.getElementById('success-message').scrollIntoView({ behavior: 'smooth', block: 'center' });
+      }
+    }
+
+    function updateProgress() {
+      const percent = (completedSteps.size / 5) * 100;
+      document.getElementById('progress-fill').style.width = percent + '%';
+      document.getElementById('progress-text').textContent = completedSteps.size + '/5';
+    }
+
+    function copyCode(btn) {
+      const codeBlock = btn.parentElement;
+      const code = codeBlock.querySelector('code').textContent || codeBlock.querySelector('pre').textContent;
+      navigator.clipboard.writeText(code.trim()).then(() => {
+        const originalText = btn.textContent;
+        btn.textContent = '✓ Copié !';
+        btn.classList.add('bg-green-600');
+        setTimeout(() => {
+          btn.textContent = originalText;
+          btn.classList.remove('bg-green-600');
+        }, 2000);
+      });
+    }
+  </script>
+</body>
+</html>
