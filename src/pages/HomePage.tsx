@@ -894,6 +894,12 @@ export default function HomePage() {
               >
                 📤 Guide GitHub
               </a>
+              <a
+                href="#reset"
+                className={`text-sm transition-colors ${theme === 'dark' ? 'text-gray-400 hover:text-gray-200' : 'text-gray-600 hover:text-gray-800'}`}
+              >
+                🔄 Réinitialiser
+              </a>
             </div>
           </div>
           <div className={`text-center text-xs mt-6 ${theme === 'dark' ? 'text-gray-400' : 'text-gray-600'}`}>
