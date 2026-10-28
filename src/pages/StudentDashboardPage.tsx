@@ -1,13 +1,23 @@
 import React, { useState } from 'react';
 import { useApp } from '../context/AppContext';
-import { Calendar, FileText, Download, Clock, CheckCircle, AlertCircle, XCircle, Upload, Trash2, BookOpen, Euro, User, LogOut, FileUp } from 'lucide-react';
-import { format } from 'date-fns';
+import { Calendar, FileText, Download, Clock, CheckCircle, AlertCircle, XCircle, Upload, Trash2, BookOpen, Euro, User, LogOut, FileUp, ArrowRight, X } from 'lucide-react';
+import { format, addDays } from 'date-fns';
 import { fr } from 'date-fns/locale';
 
 export default function StudentDashboardPage() {
-  const { currentStudentId, getStudentById, appointments, invoices, purchaseOrders, documents, addDocument, deleteDocument, logoutStudent } = useApp();
+  const { currentStudentId, getStudentById, appointments, invoices, purchaseOrders, documents, addDocument, deleteDocument, logoutStudent, addAppointment } = useApp();
   const [activeTab, setActiveTab] = useState<'overview' | 'appointments' | 'invoices' | 'documents'>('overview');
   const [showUploadModal, setShowUploadModal] = useState(false);
+
+  // États pour le processus de réservation
+  const [showBookingModal, setShowBookingModal] = useState(false);
+  const [bookingStep, setBookingStep] = useState(1);
+  const [selectedDate, setSelectedDate] = useState('');
+  const [selectedTime, setSelectedTime] = useState('');
+  const [selectedDuration, setSelectedDuration] = useState(60);
+  const [subject, setSubject] = useState('');
+  const [bookingNotes, setBookingNotes] = useState('');
+  const [bookingConfirmed, setBookingConfirmed] = useState(false);
 
   const student = currentStudentId ? getStudentById(currentStudentId) : null;
   if (!student) return null;
@@ -32,6 +42,62 @@ export default function StudentDashboardPage() {
   const totalDue = myAppointments
     .filter(a => !a.paid && (a.status === 'confirmed' || a.status === 'completed'))
     .reduce((sum, a) => sum + a.price, 0);
+
+  // Fonctions pour le processus de réservation
+  const activeAppointments = appointments.filter(a => !a.archived && a.status !== 'cancelled');
+  const availableTimes = ['08:00', '09:00', '10:00', '11:00', '14:00', '15:00', '16:00', '17:00', '18:00', '19:00'];
+
+  const getAvailableDates = () => {
+    const dates = [];
+    const today = new Date();
+    for (let i = 1; i <= 14; i++) {
+      const date = addDays(today, i);
+      if (date.getDay() !== 0) dates.push(date);
+    }
+    return dates;
+  };
+
+  const isTimeSlotAvailable = (date: string, time: string) => {
+    return !activeAppointments.some(a => a.date === date && a.time === time);
+  };
+
+  const getBookingPrice = () => {
+    switch (selectedDuration) {
+      case 60: return 45;
+      case 90: return 65;
+      case 120: return 85;
+      default: return 45;
+    }
+  };
+
+  const handleSubmitBooking = () => {
+    if (!student) return;
+
+    addAppointment({
+      studentId: student.id,
+      date: selectedDate,
+      time: selectedTime,
+      duration: selectedDuration,
+      subject,
+      status: 'pending',
+      notes: bookingNotes,
+      price: getBookingPrice(),
+      paid: false,
+    });
+
+    setBookingConfirmed(true);
+  };
+
+  const resetBookingForm = () => {
+    setBookingStep(1);
+    setSelectedDate('');
+    setSelectedTime('');
+    setSelectedDuration(60);
+    setSubject('');
+    setBookingNotes('');
+    setBookingConfirmed(false);
+    setShowBookingModal(false);
+  };
 
   const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = e.target.files;
@@ -155,27 +221,25 @@ export default function StudentDashboardPage() {
           </div>
           <div className="flex items-center gap-2">
             <button
-              onClick={() => window.location.hash = ''}
+              onClick={() => {
+                window.history.pushState({}, '', window.location.pathname);
+                window.dispatchEvent(new PopStateEvent('popstate'));
+              }}
               className="text-sm text-gray-500 hover:text-gray-700 px-3 py-2 rounded-lg hover:bg-gray-100 transition-colors"
             >
               Accueil
-            </button>
-            <button
-              onClick={() => {
-                window.location.hash = '';
-                setTimeout(() => {
-                  document.getElementById('booking')?.scrollIntoView({ behavior: 'smooth' });
-                }, 100);
-              }}
-              className="flex items-center gap-2 text-sm text-white bg-indigo-600 hover:bg-indigo-500 px-3 py-2 rounded-lg transition-colors"
-            >
-              <Calendar className="w-4 h-4" /> Réserver
             </button>
             <button
               onClick={() => window.location.hash = '#student-profile'}
               className="flex items-center gap-2 text-sm text-gray-600 hover:text-gray-800 px-3 py-2 rounded-lg hover:bg-gray-100 transition-colors"
             >
               <User className="w-4 h-4" /> Profil
+            </button>
+            <button
+              onClick={() => setShowBookingModal(true)}
+              className="flex items-center gap-2 text-sm text-white bg-indigo-600 hover:bg-indigo-500 px-3 py-2 rounded-lg transition-colors"
+            >
+              <Calendar className="w-4 h-4" /> Réserver
             </button>
             <button
               onClick={logoutStudent}
@@ -520,6 +584,240 @@ export default function StudentDashboardPage() {
             >
               Fermer
             </button>
+          </div>
+        </div>
+      )}
+
+      {/* Booking Modal */}
+      {showBookingModal && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4" onClick={resetBookingForm}>
+          <div className="bg-white rounded-2xl shadow-2xl max-w-2xl w-full max-h-[90vh] overflow-y-auto" onClick={e => e.stopPropagation()}>
+            {/* Header */}
+            <div className="sticky top-0 bg-white border-b border-gray-200 px-6 py-4 flex items-center justify-between rounded-t-2xl">
+              <h2 className="text-xl font-bold text-gray-900 flex items-center gap-2">
+                <Calendar className="w-5 h-5 text-indigo-600" />
+                Réserver un cours
+              </h2>
+              <button onClick={resetBookingForm} className="p-2 rounded-lg hover:bg-gray-100 transition-colors">
+                <X className="w-5 h-5 text-gray-500" />
+              </button>
+            </div>
+
+            <div className="p-6">
+              {/* Confirmation */}
+              {bookingConfirmed ? (
+                <div className="text-center py-8">
+                  <div className="w-20 h-20 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-6">
+                    <CheckCircle className="w-10 h-10 text-green-600" />
+                  </div>
+                  <h3 className="text-2xl font-bold text-gray-900 mb-4">Réservation envoyée !</h3>
+                  <p className="text-gray-600 mb-6">
+                    Votre demande de cours de <strong>{subject}</strong> a été envoyée.
+                    <br />
+                    Le professeur vous confirmera le créneau sous 24h.
+                  </p>
+                  <div className="bg-indigo-50 border border-indigo-200 rounded-xl p-4 mb-6 text-left">
+                    <div className="flex items-center justify-between text-sm">
+                      <span className="text-gray-600">Date :</span>
+                      <span className="font-semibold text-indigo-700">
+                        {format(new Date(selectedDate), 'dd MMMM yyyy', { locale: fr })}
+                      </span>
+                    </div>
+                    <div className="flex items-center justify-between text-sm mt-2">
+                      <span className="text-gray-600">Heure :</span>
+                      <span className="font-semibold text-indigo-700">{selectedTime}</span>
+                    </div>
+                    <div className="flex items-center justify-between text-sm mt-2">
+                      <span className="text-gray-600">Durée :</span>
+                      <span className="font-semibold text-indigo-700">{selectedDuration} min</span>
+                    </div>
+                    <div className="flex items-center justify-between text-sm mt-2">
+                      <span className="text-gray-600">Tarif :</span>
+                      <span className="font-semibold text-indigo-700">{getBookingPrice()}€</span>
+                    </div>
+                  </div>
+                  <button
+                    onClick={resetBookingForm}
+                    className="bg-indigo-600 text-white px-8 py-3 rounded-xl font-semibold hover:bg-indigo-700 transition-all"
+                  >
+                    Fermer
+                  </button>
+                </div>
+              ) : (
+                <>
+                  {/* Progress Steps */}
+                  <div className="flex items-center justify-center mb-8">
+                    {[1, 2].map((s) => (
+                      <React.Fragment key={s}>
+                        <div className={`flex items-center justify-center w-10 h-10 rounded-full font-bold text-sm transition-all ${
+                          bookingStep >= s ? 'bg-indigo-600 text-white shadow-lg' : 'bg-gray-200 text-gray-500'
+                        }`}>
+                          {s}
+                        </div>
+                        {s < 2 && (
+                          <div className={`w-16 h-1 mx-2 rounded ${bookingStep > s ? 'bg-indigo-600' : 'bg-gray-200'}`}></div>
+                        )}
+                      </React.Fragment>
+                    ))}
+                  </div>
+
+                  {/* Step 1: Choose Date & Time */}
+                  {bookingStep === 1 && (
+                    <div>
+                      <h3 className="text-lg font-bold text-gray-900 mb-4">Choisissez votre créneau</h3>
+
+                      {/* Duration */}
+                      <div className="mb-6">
+                        <label className="block text-sm font-semibold text-gray-700 mb-3">Durée du cours</label>
+                        <div className="grid grid-cols-3 gap-3">
+                          {[
+                            { value: 60, label: '1h', price: '45€' },
+                            { value: 90, label: '1h30', price: '65€' },
+                            { value: 120, label: '2h', price: '85€' },
+                          ].map(d => (
+                            <button
+                              key={d.value}
+                              onClick={() => setSelectedDuration(d.value)}
+                              className={`p-4 rounded-xl border-2 transition-all ${
+                                selectedDuration === d.value
+                                  ? 'border-indigo-600 bg-indigo-50 text-indigo-700'
+                                  : 'border-gray-200 hover:border-indigo-300'
+                              }`}
+                            >
+                              <div className="font-bold text-lg">{d.label}</div>
+                              <div className="text-sm text-gray-500">{d.price}</div>
+                            </button>
+                          ))}
+                        </div>
+                      </div>
+
+                      {/* Date Selection */}
+                      <div className="mb-6">
+                        <label className="block text-sm font-semibold text-gray-700 mb-3">Date</label>
+                        <div className="grid grid-cols-4 md:grid-cols-7 gap-2">
+                          {getAvailableDates().map(date => {
+                            const dateStr = format(date, 'yyyy-MM-dd');
+                            return (
+                              <button
+                                key={dateStr}
+                                onClick={() => { setSelectedDate(dateStr); setSelectedTime(''); }}
+                                className={`p-3 rounded-xl text-center transition-all ${
+                                  selectedDate === dateStr
+                                    ? 'bg-indigo-600 text-white shadow-lg'
+                                    : 'bg-gray-50 hover:bg-indigo-50 border border-gray-200'
+                                }`}
+                              >
+                                <div className="text-xs font-medium">{format(date, 'EEE', { locale: fr })}</div>
+                                <div className="text-lg font-bold">{format(date, 'd')}</div>
+                                <div className="text-xs">{format(date, 'MMM', { locale: fr })}</div>
+                              </button>
+                            );
+                          })}
+                        </div>
+                      </div>
+
+                      {/* Time Selection */}
+                      {selectedDate && (
+                        <div className="mb-6">
+                          <label className="block text-sm font-semibold text-gray-700 mb-3">
+                            <Clock className="w-4 h-4 inline mr-1" />
+                            Heure
+                          </label>
+                          <div className="grid grid-cols-3 md:grid-cols-5 gap-2">
+                            {availableTimes.map(time => {
+                              const available = isTimeSlotAvailable(selectedDate, time);
+                              return (
+                                <button
+                                  key={time}
+                                  onClick={() => available && setSelectedTime(time)}
+                                  disabled={!available}
+                                  className={`p-3 rounded-xl text-center font-medium transition-all ${
+                                    !available
+                                      ? 'bg-gray-100 text-gray-300 cursor-not-allowed line-through'
+                                      : selectedTime === time
+                                      ? 'bg-indigo-600 text-white shadow-lg'
+                                      : 'bg-gray-50 hover:bg-indigo-50 border border-gray-200'
+                                  }`}
+                                >
+                                  {time}
+                                </button>
+                              );
+                            })}
+                          </div>
+                        </div>
+                      )}
+
+                      <button
+                        onClick={() => setBookingStep(2)}
+                        disabled={!selectedDate || !selectedTime}
+                        className="w-full bg-indigo-600 text-white py-3 rounded-xl font-semibold hover:bg-indigo-700 transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+                      >
+                        Continuer <ArrowRight className="w-5 h-5" />
+                      </button>
+                    </div>
+                  )}
+
+                  {/* Step 2: Course Details */}
+                  {bookingStep === 2 && (
+                    <div>
+                      <h3 className="text-lg font-bold text-gray-900 mb-4">Détails du cours</h3>
+
+                      <div className="bg-indigo-50 border border-indigo-200 rounded-xl p-4 mb-6">
+                        <div className="flex items-center gap-4 text-sm">
+                          <span className="font-semibold text-indigo-700">
+                            {format(new Date(selectedDate), 'dd MMMM yyyy', { locale: fr })}
+                          </span>
+                          <span className="text-indigo-400">•</span>
+                          <span className="text-indigo-600">{selectedTime}</span>
+                          <span className="text-indigo-400">•</span>
+                          <span className="text-indigo-600">{selectedDuration} min</span>
+                          <span className="ml-auto font-bold text-indigo-700">{getBookingPrice()}€</span>
+                        </div>
+                      </div>
+
+                      <div className="space-y-4">
+                        <div>
+                          <label className="block text-sm font-semibold text-gray-700 mb-2">Sujet du cours *</label>
+                          <input
+                            type="text"
+                            value={subject}
+                            onChange={e => setSubject(e.target.value)}
+                            placeholder="Ex: Suites et limites, Géométrie dans l'espace..."
+                            className="w-full px-4 py-3 rounded-xl border border-gray-200 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-200 outline-none transition-all"
+                          />
+                        </div>
+                        <div>
+                          <label className="block text-sm font-semibold text-gray-700 mb-2">Notes complémentaires</label>
+                          <textarea
+                            value={bookingNotes}
+                            onChange={e => setBookingNotes(e.target.value)}
+                            placeholder="Points à travailler, objectifs, manuels utilisés..."
+                            rows={3}
+                            className="w-full px-4 py-3 rounded-xl border border-gray-200 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-200 outline-none transition-all resize-none"
+                          />
+                        </div>
+                      </div>
+
+                      <div className="flex gap-3 mt-6">
+                        <button
+                          onClick={() => setBookingStep(1)}
+                          className="px-6 py-3 rounded-xl border border-gray-200 font-semibold text-gray-600 hover:bg-gray-50 transition-all"
+                        >
+                          Retour
+                        </button>
+                        <button
+                          onClick={handleSubmitBooking}
+                          disabled={!subject}
+                          className="flex-1 bg-green-600 text-white py-3 rounded-xl font-semibold hover:bg-green-700 transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+                        >
+                          <CheckCircle className="w-5 h-5" /> Confirmer la réservation
+                        </button>
+                      </div>
+                    </div>
+                  )}
+                </>
+              )}
+            </div>
           </div>
         </div>
       )}

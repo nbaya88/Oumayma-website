@@ -18,7 +18,6 @@ export default function HomePage() {
   const [bookingConfirmed, setBookingConfirmed] = useState(false);
 
   const activeAppointments = appointments.filter(a => !a.archived && a.status !== 'cancelled');
-
   const availableTimes = ['08:00', '09:00', '10:00', '11:00', '14:00', '15:00', '16:00', '17:00', '18:00', '19:00'];
 
   const getAvailableDates = () => {
@@ -26,9 +25,7 @@ export default function HomePage() {
     const today = new Date();
     for (let i = 1; i <= 14; i++) {
       const date = addDays(today, i);
-      if (date.getDay() !== 0) {
-        dates.push(date);
-      }
+      if (date.getDay() !== 0) dates.push(date);
     }
     return dates;
   };
@@ -48,7 +45,6 @@ export default function HomePage() {
 
   const handleSubmitBooking = () => {
     let studentId = existingStudentId;
-
     if (!isExistingStudent) {
       addStudent({
         firstName: studentInfo.firstName,
@@ -62,7 +58,6 @@ export default function HomePage() {
       const allStudents = [...students];
       studentId = allStudents[allStudents.length - 1]?.id || '';
     }
-
     if (!studentId) {
       studentId = students[0]?.id || 'temp-' + Date.now();
       if (!students.find(s => s.id === studentId)) {
@@ -77,7 +72,6 @@ export default function HomePage() {
         });
       }
     }
-
     addAppointment({
       studentId,
       date: selectedDate,
@@ -89,7 +83,6 @@ export default function HomePage() {
       price: getPrice(),
       paid: false,
     });
-
     setBookingConfirmed(true);
   };
 
@@ -108,21 +101,18 @@ export default function HomePage() {
 
   if (bookingConfirmed) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-slate-900 via-indigo-950 to-slate-900 flex items-center justify-center p-4">
-        <div className="bg-white rounded-3xl shadow-2xl p-12 max-w-md text-center">
+      <div className="min-h-screen theme-bg-primary flex items-center justify-center p-4">
+        <div className="theme-bg-card rounded-3xl shadow-2xl p-12 max-w-md text-center border theme-border">
           <div className="w-20 h-20 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-6">
             <CheckCircle className="w-10 h-10 text-green-600" />
           </div>
-          <h2 className="text-3xl font-bold text-gray-900 mb-4">Réservation confirmée !</h2>
-          <p className="text-gray-600 mb-6">
+          <h2 className="text-3xl font-bold theme-text-primary mb-4">Réservation confirmée !</h2>
+          <p className="theme-text-secondary mb-6">
             Votre cours de <strong>{subject}</strong> est prévu le{' '}
             <strong>{format(new Date(selectedDate), 'dd MMMM yyyy', { locale: fr })}</strong> à{' '}
             <strong>{selectedTime}</strong>.
           </p>
-          <button
-            onClick={resetForm}
-            className="bg-indigo-600 text-white px-8 py-3 rounded-xl font-semibold hover:bg-indigo-700 transition-all"
-          >
+          <button onClick={resetForm} className="bg-indigo-600 text-white px-8 py-3 rounded-xl font-semibold hover:bg-indigo-500 transition-all">
             Nouvelle réservation
           </button>
         </div>
@@ -131,8 +121,8 @@ export default function HomePage() {
   }
 
   return (
-    <div className="min-h-screen bg-slate-950 text-white overflow-hidden">
-      {/* Animated Math Background */}
+    <div className="min-h-screen theme-bg-primary theme-text-primary overflow-hidden">
+      {/* Animated Background */}
       <div className="fixed inset-0 overflow-hidden pointer-events-none">
         <div className="absolute top-20 left-[10%] text-7xl font-bold text-indigo-500/10 animate-pulse">∑</div>
         <div className="absolute top-40 right-[15%] text-6xl font-bold text-purple-500/10 animate-pulse" style={{ animationDelay: '0.5s' }}>∫</div>
@@ -142,12 +132,10 @@ export default function HomePage() {
         <div className="absolute bottom-[40%] left-[20%] text-5xl font-bold text-purple-500/10 animate-pulse" style={{ animationDelay: '0.8s' }}>√</div>
         <div className="absolute top-[50%] left-[50%] text-4xl font-bold text-blue-500/10 animate-pulse" style={{ animationDelay: '1.2s' }}>θ</div>
         <div className="absolute top-[15%] left-[40%] text-5xl font-bold text-cyan-500/10 animate-pulse" style={{ animationDelay: '0.3s' }}>φ</div>
-        {/* Grid pattern */}
         <div className="absolute inset-0 opacity-[0.03]" style={{
           backgroundImage: 'linear-gradient(rgba(99,102,241,0.5) 1px, transparent 1px), linear-gradient(90deg, rgba(99,102,241,0.5) 1px, transparent 1px)',
           backgroundSize: '60px 60px'
         }}></div>
-        {/* Gradient orbs */}
         <div className="absolute top-0 right-0 w-[500px] h-[500px] bg-indigo-600/20 rounded-full blur-[120px]"></div>
         <div className="absolute bottom-0 left-0 w-[400px] h-[400px] bg-purple-600/20 rounded-full blur-[120px]"></div>
       </div>
@@ -159,29 +147,31 @@ export default function HomePage() {
             <Sigma className="w-6 h-6 text-white" />
           </div>
           <div>
-            <span className="text-xl font-bold text-white">MathPro</span>
-            <span className="text-xs text-indigo-300 block -mt-1">Cours de mathématiques</span>
+            <span className="text-xl font-bold theme-text-primary">MathPro</span>
+            <span className="text-xs text-indigo-400 block -mt-1">Cours de mathématiques</span>
           </div>
         </div>
         <div className="flex items-center gap-3">
           {/* Theme Toggle */}
           <button
             onClick={toggleTheme}
-            className="p-2 rounded-xl border border-gray-700 hover:border-gray-500 transition-all"
+            className={`p-2 rounded-xl border transition-all ${
+              theme === 'dark'
+                ? 'border-gray-700 hover:border-gray-500 bg-slate-800/50'
+                : 'border-gray-300 hover:border-gray-400 bg-white shadow-sm'
+            }`}
             title={theme === 'dark' ? 'Passer en mode clair' : 'Passer en mode sombre'}
           >
-            {theme === 'dark' ? <Sun className="w-5 h-5 text-yellow-400" /> : <Moon className="w-5 h-5 text-indigo-400" />}
+            {theme === 'dark' ? <Sun className="w-5 h-5 text-yellow-400" /> : <Moon className="w-5 h-5 text-indigo-600" />}
           </button>
           <button
             onClick={() => window.location.hash = '#student-login'}
-            className="flex items-center gap-2 px-4 py-2 text-sm text-indigo-300 hover:text-white border border-indigo-500/30 rounded-xl hover:border-indigo-400 transition-all"
+            className="flex items-center gap-2 px-4 py-2 text-sm text-indigo-400 hover:text-indigo-300 border border-indigo-500/30 rounded-xl hover:border-indigo-400 transition-all"
           >
             <LogIn className="w-4 h-4" /> Espace élève
           </button>
           <button
-            onClick={() => {
-              document.getElementById('booking')?.scrollIntoView({ behavior: 'smooth' });
-            }}
+            onClick={() => document.getElementById('booking')?.scrollIntoView({ behavior: 'smooth' })}
             className="hidden md:flex items-center gap-2 px-4 py-2 text-sm bg-indigo-600 text-white rounded-xl hover:bg-indigo-500 transition-all"
           >
             Réserver un cours
@@ -198,13 +188,13 @@ export default function HomePage() {
               <span>+10 ans d'expérience • +200 élèves accompagnés</span>
             </div>
             <h1 className="text-5xl md:text-6xl font-bold leading-tight mb-6">
-              <span className="text-white">Maîtrisez les</span><br />
+              <span className="theme-text-primary">Maîtrisez les</span><br />
               <span className="bg-gradient-to-r from-indigo-400 via-purple-400 to-cyan-400 bg-clip-text text-transparent">
                 mathématiques
               </span>
             </h1>
-            <p className="text-lg text-gray-400 mb-8 max-w-lg">
-              Cours particuliers de la 6ème à l'enseignement supérieur. 
+            <p className="text-lg theme-text-secondary mb-8 max-w-lg">
+              Cours particuliers de la 6ème à l'enseignement supérieur.
               Une méthode personnalisée pour chaque élève, des résultats concrets.
             </p>
             <div className="flex flex-wrap gap-4">
@@ -216,25 +206,29 @@ export default function HomePage() {
               </button>
               <button
                 onClick={() => document.getElementById('subjects')?.scrollIntoView({ behavior: 'smooth' })}
-                className="flex items-center gap-2 px-6 py-3 border border-gray-700 text-gray-300 rounded-xl font-semibold hover:border-gray-500 hover:text-white transition-all"
+                className={`flex items-center gap-2 px-6 py-3 border rounded-xl font-semibold transition-all ${
+                  theme === 'dark'
+                    ? 'border-gray-700 theme-text-secondary hover:border-gray-500 hover:theme-text-primary'
+                    : 'border-gray-300 text-gray-700 hover:border-gray-400 hover:text-gray-900'
+                }`}
               >
                 Voir les matières
               </button>
             </div>
 
             {/* Stats */}
-            <div className="grid grid-cols-3 gap-6 mt-12 pt-8 border-t border-gray-800">
+            <div className={`grid grid-cols-3 gap-6 mt-12 pt-8 border-t ${theme === 'dark' ? 'border-gray-800' : 'border-gray-200'}`}>
               <div>
-                <div className="text-3xl font-bold text-white">95%</div>
-                <div className="text-sm text-gray-500">Réussite au bac</div>
+                <div className="text-3xl font-bold theme-text-primary">95%</div>
+                <div className="text-sm theme-text-muted">Réussite au bac</div>
               </div>
               <div>
-                <div className="text-3xl font-bold text-white">+200</div>
-                <div className="text-sm text-gray-500">Élèves formés</div>
+                <div className="text-3xl font-bold theme-text-primary">+200</div>
+                <div className="text-sm theme-text-muted">Élèves formés</div>
               </div>
               <div>
-                <div className="text-3xl font-bold text-white">4.9/5</div>
-                <div className="text-sm text-gray-500">Satisfaction</div>
+                <div className="text-3xl font-bold theme-text-primary">4.9/5</div>
+                <div className="text-sm theme-text-muted">Satisfaction</div>
               </div>
             </div>
           </div>
@@ -242,7 +236,6 @@ export default function HomePage() {
           {/* Visual Element */}
           <div className="hidden lg:block relative">
             <div className="relative w-full aspect-square max-w-md mx-auto">
-              {/* Central circle */}
               <div className="absolute inset-[15%] bg-gradient-to-br from-indigo-600/30 to-purple-600/30 rounded-full backdrop-blur-sm border border-indigo-500/20"></div>
               <div className="absolute inset-[25%] bg-gradient-to-br from-indigo-600/40 to-purple-600/40 rounded-full flex items-center justify-center">
                 <div className="text-center">
@@ -250,22 +243,21 @@ export default function HomePage() {
                   <div className="text-sm text-indigo-200">Fonctions & Analyse</div>
                 </div>
               </div>
-              {/* Orbiting elements */}
-              <div className="absolute top-[5%] left-1/2 -translate-x-1/2 bg-slate-800/80 backdrop-blur border border-gray-700 rounded-2xl p-4 shadow-xl">
+              <div className={`absolute top-[5%] left-1/2 -translate-x-1/2 backdrop-blur rounded-2xl p-4 shadow-xl ${theme === 'dark' ? 'bg-slate-800/80 border border-gray-700' : 'bg-white/80 border border-gray-200'}`}>
                 <Calculator className="w-8 h-8 text-indigo-400" />
-                <div className="text-xs text-gray-400 mt-1">Calcul</div>
+                <div className="text-xs theme-text-muted mt-1">Calcul</div>
               </div>
-              <div className="absolute bottom-[5%] left-1/2 -translate-x-1/2 bg-slate-800/80 backdrop-blur border border-gray-700 rounded-2xl p-4 shadow-xl">
+              <div className={`absolute bottom-[5%] left-1/2 -translate-x-1/2 backdrop-blur rounded-2xl p-4 shadow-xl ${theme === 'dark' ? 'bg-slate-800/80 border border-gray-700' : 'bg-white/80 border border-gray-200'}`}>
                 <Pi className="w-8 h-8 text-purple-400" />
-                <div className="text-xs text-gray-400 mt-1">Géométrie</div>
+                <div className="text-xs theme-text-muted mt-1">Géométrie</div>
               </div>
-              <div className="absolute left-[5%] top-1/2 -translate-y-1/2 bg-slate-800/80 backdrop-blur border border-gray-700 rounded-2xl p-4 shadow-xl">
+              <div className={`absolute left-[5%] top-1/2 -translate-y-1/2 backdrop-blur rounded-2xl p-4 shadow-xl ${theme === 'dark' ? 'bg-slate-800/80 border border-gray-700' : 'bg-white/80 border border-gray-200'}`}>
                 <FunctionSquare className="w-8 h-8 text-cyan-400" />
-                <div className="text-xs text-gray-400 mt-1">Fonctions</div>
+                <div className="text-xs theme-text-muted mt-1">Fonctions</div>
               </div>
-              <div className="absolute right-[5%] top-1/2 -translate-y-1/2 bg-slate-800/80 backdrop-blur border border-gray-700 rounded-2xl p-4 shadow-xl">
+              <div className={`absolute right-[5%] top-1/2 -translate-y-1/2 backdrop-blur rounded-2xl p-4 shadow-xl ${theme === 'dark' ? 'bg-slate-800/80 border border-gray-700' : 'bg-white/80 border border-gray-200'}`}>
                 <Atom className="w-8 h-8 text-green-400" />
-                <div className="text-xs text-gray-400 mt-1">Probabilités</div>
+                <div className="text-xs theme-text-muted mt-1">Probabilités</div>
               </div>
             </div>
           </div>
@@ -275,8 +267,8 @@ export default function HomePage() {
       {/* Subjects Section */}
       <section id="subjects" className="relative z-10 max-w-7xl mx-auto px-4 py-24">
         <div className="text-center mb-12">
-          <h2 className="text-3xl md:text-4xl font-bold text-white mb-4">Domaines d'enseignement</h2>
-          <p className="text-gray-400 max-w-2xl mx-auto">
+          <h2 className="text-3xl md:text-4xl font-bold theme-text-primary mb-4">Domaines d'enseignement</h2>
+          <p className="theme-text-secondary max-w-2xl mx-auto">
             Un accompagnement complet dans tous les domaines des mathématiques
           </p>
         </div>
@@ -292,12 +284,16 @@ export default function HomePage() {
             { icon: <FlaskConical className="w-6 h-6" />, title: 'Bac / Concours', desc: 'Préparation intensive aux examens', color: 'from-violet-500 to-purple-500' },
             { icon: <Award className="w-6 h-6" />, title: 'Supérieur', desc: 'Prépa, BTS, licence, master', color: 'from-sky-500 to-blue-500' },
           ].map((item, idx) => (
-            <div key={idx} className="group bg-slate-900/50 backdrop-blur border border-gray-800 rounded-2xl p-5 hover:border-indigo-500/50 transition-all hover:-translate-y-1">
+            <div key={idx} className={`group rounded-2xl p-5 transition-all hover:-translate-y-1 ${
+              theme === 'dark'
+                ? 'bg-slate-900/50 backdrop-blur border border-gray-800 hover:border-indigo-500/50'
+                : 'bg-white border border-gray-200 hover:border-indigo-300 shadow-sm hover:shadow-md'
+            }`}>
               <div className={`w-12 h-12 bg-gradient-to-br ${item.color} rounded-xl flex items-center justify-center text-white mb-3 group-hover:scale-110 transition-transform`}>
                 {item.icon}
               </div>
-              <h3 className="font-bold text-white mb-1">{item.title}</h3>
-              <p className="text-sm text-gray-500">{item.desc}</p>
+              <h3 className="font-bold theme-text-primary mb-1">{item.title}</h3>
+              <p className="text-sm theme-text-muted">{item.desc}</p>
             </div>
           ))}
         </div>
@@ -306,8 +302,8 @@ export default function HomePage() {
       {/* Booking Section */}
       <section id="booking" className="relative z-10 max-w-4xl mx-auto px-4 py-24">
         <div className="text-center mb-12">
-          <h2 className="text-3xl md:text-4xl font-bold text-white mb-4">Réservez votre cours</h2>
-          <p className="text-gray-400">Processus simple en 3 étapes</p>
+          <h2 className="text-3xl md:text-4xl font-bold theme-text-primary mb-4">Réservez votre cours</h2>
+          <p className="theme-text-secondary">Processus simple en 3 étapes</p>
         </div>
 
         {/* Progress Steps */}
@@ -315,30 +311,31 @@ export default function HomePage() {
           {[1, 2, 3].map((s) => (
             <React.Fragment key={s}>
               <div className={`flex items-center justify-center w-10 h-10 rounded-full font-bold text-sm transition-all ${
-                step >= s ? 'bg-indigo-600 text-white shadow-lg shadow-indigo-500/30' : 'bg-slate-800 text-gray-500 border border-gray-700'
+                step >= s ? 'bg-indigo-600 text-white shadow-lg shadow-indigo-500/30' : theme === 'dark' ? 'bg-slate-800 text-gray-500 border border-gray-700' : 'bg-gray-200 text-gray-500'
               }`}>
                 {s}
               </div>
               {s < 3 && (
-                <div className={`w-16 h-1 mx-2 rounded ${step > s ? 'bg-indigo-600' : 'bg-slate-800'}`}></div>
+                <div className={`w-16 h-1 mx-2 rounded ${step > s ? 'bg-indigo-600' : theme === 'dark' ? 'bg-slate-800' : 'bg-gray-200'}`}></div>
               )}
             </React.Fragment>
           ))}
         </div>
 
-        <div className="bg-slate-900/80 backdrop-blur-xl rounded-3xl border border-gray-800 p-8 md:p-12 shadow-2xl">
-          {/* Step 1: Choose Date & Time */}
+        <div className={`rounded-3xl p-8 md:p-12 shadow-2xl ${
+          theme === 'dark' ? 'bg-slate-900/80 backdrop-blur-xl border border-gray-800' : 'bg-white border border-gray-200'
+        }`}>
+          {/* Step 1 */}
           {step === 1 && (
             <div>
-              <h2 className="text-2xl font-bold text-white mb-2 flex items-center gap-2">
+              <h2 className="text-2xl font-bold theme-text-primary mb-2 flex items-center gap-2">
                 <Calendar className="w-6 h-6 text-indigo-400" />
                 Choisissez votre créneau
               </h2>
-              <p className="text-gray-400 mb-8">Sélectionnez la date et l'heure qui vous conviennent</p>
+              <p className="theme-text-secondary mb-8">Sélectionnez la date et l'heure qui vous conviennent</p>
 
-              {/* Duration */}
               <div className="mb-8">
-                <label className="block text-sm font-semibold text-gray-300 mb-3">Durée du cours</label>
+                <label className="block text-sm font-semibold theme-text-secondary mb-3">Durée du cours</label>
                 <div className="grid grid-cols-3 gap-3">
                   {[
                     { value: 60, label: '1h', price: '45€' },
@@ -350,20 +347,19 @@ export default function HomePage() {
                       onClick={() => setSelectedDuration(d.value)}
                       className={`p-4 rounded-xl border-2 transition-all ${
                         selectedDuration === d.value
-                          ? 'border-indigo-500 bg-indigo-500/10 text-white'
-                          : 'border-gray-700 bg-slate-800/50 text-gray-400 hover:border-gray-600'
+                          ? 'border-indigo-500 bg-indigo-500/10 theme-text-primary'
+                          : theme === 'dark' ? 'border-gray-700 bg-slate-800/50 text-gray-400 hover:border-gray-600' : 'border-gray-200 bg-gray-50 text-gray-600 hover:border-gray-300'
                       }`}
                     >
                       <div className="font-bold text-lg">{d.label}</div>
-                      <div className="text-sm text-indigo-300">{d.price}</div>
+                      <div className="text-sm text-indigo-400">{d.price}</div>
                     </button>
                   ))}
                 </div>
               </div>
 
-              {/* Date Selection */}
               <div className="mb-8">
-                <label className="block text-sm font-semibold text-gray-300 mb-3">Date</label>
+                <label className="block text-sm font-semibold theme-text-secondary mb-3">Date</label>
                 <div className="grid grid-cols-4 md:grid-cols-7 gap-2">
                   {getAvailableDates().map(date => {
                     const dateStr = format(date, 'yyyy-MM-dd');
@@ -374,7 +370,7 @@ export default function HomePage() {
                         className={`p-3 rounded-xl text-center transition-all ${
                           selectedDate === dateStr
                             ? 'bg-indigo-600 text-white shadow-lg shadow-indigo-500/30'
-                            : 'bg-slate-800/50 hover:bg-slate-800 border border-gray-700 text-gray-300'
+                            : theme === 'dark' ? 'bg-slate-800/50 hover:bg-slate-800 border border-gray-700 text-gray-300' : 'bg-gray-50 hover:bg-gray-100 border border-gray-200 text-gray-700'
                         }`}
                       >
                         <div className="text-xs font-medium">{format(date, 'EEE', { locale: fr })}</div>
@@ -386,12 +382,10 @@ export default function HomePage() {
                 </div>
               </div>
 
-              {/* Time Selection */}
               {selectedDate && (
                 <div className="mb-8">
-                  <label className="block text-sm font-semibold text-gray-300 mb-3">
-                    <Clock className="w-4 h-4 inline mr-1" />
-                    Heure
+                  <label className="block text-sm font-semibold theme-text-secondary mb-3">
+                    <Clock className="w-4 h-4 inline mr-1" /> Heure
                   </label>
                   <div className="grid grid-cols-3 md:grid-cols-5 gap-2">
                     {availableTimes.map(time => {
@@ -403,10 +397,10 @@ export default function HomePage() {
                           disabled={!available}
                           className={`p-3 rounded-xl text-center font-medium transition-all ${
                             !available
-                              ? 'bg-slate-800/30 text-gray-600 cursor-not-allowed line-through'
+                              ? theme === 'dark' ? 'bg-slate-800/30 text-gray-600 cursor-not-allowed line-through' : 'bg-gray-100 text-gray-300 cursor-not-allowed line-through'
                               : selectedTime === time
                               ? 'bg-indigo-600 text-white shadow-lg'
-                              : 'bg-slate-800/50 hover:bg-slate-800 border border-gray-700 text-gray-300'
+                              : theme === 'dark' ? 'bg-slate-800/50 hover:bg-slate-800 border border-gray-700 text-gray-300' : 'bg-gray-50 hover:bg-gray-100 border border-gray-200 text-gray-700'
                           }`}
                         >
                           {time}
@@ -427,14 +421,14 @@ export default function HomePage() {
             </div>
           )}
 
-          {/* Step 2: Course Details */}
+          {/* Step 2 */}
           {step === 2 && (
             <div>
-              <h2 className="text-2xl font-bold text-white mb-2 flex items-center gap-2">
+              <h2 className="text-2xl font-bold theme-text-primary mb-2 flex items-center gap-2">
                 <BookOpen className="w-6 h-6 text-indigo-400" />
                 Détails du cours
               </h2>
-              <p className="text-gray-400 mb-8">Précisez le sujet et vos besoins</p>
+              <p className="theme-text-secondary mb-8">Précisez le sujet et vos besoins</p>
 
               <div className="bg-indigo-500/10 border border-indigo-500/20 rounded-xl p-4 mb-6">
                 <div className="flex items-center gap-4 text-sm">
@@ -451,23 +445,27 @@ export default function HomePage() {
 
               <div className="space-y-4">
                 <div>
-                  <label className="block text-sm font-semibold text-gray-300 mb-2">Sujet du cours *</label>
+                  <label className="block text-sm font-semibold theme-text-secondary mb-2">Sujet du cours *</label>
                   <input
                     type="text"
                     value={subject}
                     onChange={e => setSubject(e.target.value)}
                     placeholder="Ex: Suites et limites, Géométrie dans l'espace..."
-                    className="w-full px-4 py-3 rounded-xl bg-slate-800 border border-gray-700 text-white placeholder-gray-500 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/20 outline-none transition-all"
+                    className={`w-full px-4 py-3 rounded-xl border focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/20 outline-none transition-all ${
+                      theme === 'dark' ? 'bg-slate-800 border-gray-700 text-white placeholder-gray-500' : 'bg-white border-gray-200 text-gray-900 placeholder-gray-400'
+                    }`}
                   />
                 </div>
                 <div>
-                  <label className="block text-sm font-semibold text-gray-300 mb-2">Notes complémentaires</label>
+                  <label className="block text-sm font-semibold theme-text-secondary mb-2">Notes complémentaires</label>
                   <textarea
                     value={notes}
                     onChange={e => setNotes(e.target.value)}
                     placeholder="Points à travailler, objectifs, manuels utilisés..."
                     rows={3}
-                    className="w-full px-4 py-3 rounded-xl bg-slate-800 border border-gray-700 text-white placeholder-gray-500 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/20 outline-none transition-all resize-none"
+                    className={`w-full px-4 py-3 rounded-xl border focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/20 outline-none transition-all resize-none ${
+                      theme === 'dark' ? 'bg-slate-800 border-gray-700 text-white placeholder-gray-500' : 'bg-white border-gray-200 text-gray-900 placeholder-gray-400'
+                    }`}
                   />
                 </div>
               </div>
@@ -475,7 +473,9 @@ export default function HomePage() {
               <div className="flex gap-3 mt-8">
                 <button
                   onClick={() => setStep(1)}
-                  className="px-6 py-4 rounded-xl border border-gray-700 font-semibold text-gray-300 hover:bg-slate-800 transition-all"
+                  className={`px-6 py-4 rounded-xl font-semibold transition-all ${
+                    theme === 'dark' ? 'border border-gray-700 text-gray-300 hover:bg-slate-800' : 'border border-gray-200 text-gray-700 hover:bg-gray-50'
+                  }`}
                 >
                   Retour
                 </button>
@@ -490,14 +490,14 @@ export default function HomePage() {
             </div>
           )}
 
-          {/* Step 3: Student Info */}
+          {/* Step 3 */}
           {step === 3 && (
             <div>
-              <h2 className="text-2xl font-bold text-white mb-2 flex items-center gap-2">
+              <h2 className="text-2xl font-bold theme-text-primary mb-2 flex items-center gap-2">
                 <Users className="w-6 h-6 text-indigo-400" />
                 Vos informations
               </h2>
-              <p className="text-gray-400 mb-8">Pour finaliser votre réservation</p>
+              <p className="theme-text-secondary mb-8">Pour finaliser votre réservation</p>
 
               {students.length > 0 && (
                 <div className="mb-6">
@@ -506,20 +506,22 @@ export default function HomePage() {
                       type="checkbox"
                       checked={isExistingStudent}
                       onChange={e => setIsExistingStudent(e.target.checked)}
-                      className="w-4 h-4 text-indigo-600 rounded bg-slate-800 border-gray-700"
+                      className="w-4 h-4 text-indigo-600 rounded"
                     />
-                    <span className="text-sm font-medium text-gray-300">Je suis déjà élève</span>
+                    <span className="text-sm font-medium theme-text-secondary">Je suis déjà élève</span>
                   </label>
                 </div>
               )}
 
               {isExistingStudent ? (
                 <div className="mb-6">
-                  <label className="block text-sm font-semibold text-gray-300 mb-2">Sélectionnez votre profil</label>
+                  <label className="block text-sm font-semibold theme-text-secondary mb-2">Sélectionnez votre profil</label>
                   <select
                     value={existingStudentId}
                     onChange={e => setExistingStudentId(e.target.value)}
-                    className="w-full px-4 py-3 rounded-xl bg-slate-800 border border-gray-700 text-white focus:border-indigo-500 outline-none"
+                    className={`w-full px-4 py-3 rounded-xl border focus:border-indigo-500 outline-none ${
+                      theme === 'dark' ? 'bg-slate-800 border-gray-700 text-white' : 'bg-white border-gray-200 text-gray-900'
+                    }`}
                   >
                     <option value="">-- Choisir --</option>
                     {students.filter(s => !s.archived).map(s => (
@@ -530,47 +532,57 @@ export default function HomePage() {
               ) : (
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div>
-                    <label className="block text-sm font-semibold text-gray-300 mb-2">Prénom *</label>
+                    <label className="block text-sm font-semibold theme-text-secondary mb-2">Prénom *</label>
                     <input
                       type="text"
                       value={studentInfo.firstName}
                       onChange={e => setStudentInfo({ ...studentInfo, firstName: e.target.value })}
-                      className="w-full px-4 py-3 rounded-xl bg-slate-800 border border-gray-700 text-white placeholder-gray-500 focus:border-indigo-500 outline-none"
+                      className={`w-full px-4 py-3 rounded-xl border focus:border-indigo-500 outline-none ${
+                        theme === 'dark' ? 'bg-slate-800 border-gray-700 text-white placeholder-gray-500' : 'bg-white border-gray-200 text-gray-900 placeholder-gray-400'
+                      }`}
                     />
                   </div>
                   <div>
-                    <label className="block text-sm font-semibold text-gray-300 mb-2">Nom *</label>
+                    <label className="block text-sm font-semibold theme-text-secondary mb-2">Nom *</label>
                     <input
                       type="text"
                       value={studentInfo.lastName}
                       onChange={e => setStudentInfo({ ...studentInfo, lastName: e.target.value })}
-                      className="w-full px-4 py-3 rounded-xl bg-slate-800 border border-gray-700 text-white placeholder-gray-500 focus:border-indigo-500 outline-none"
+                      className={`w-full px-4 py-3 rounded-xl border focus:border-indigo-500 outline-none ${
+                        theme === 'dark' ? 'bg-slate-800 border-gray-700 text-white placeholder-gray-500' : 'bg-white border-gray-200 text-gray-900 placeholder-gray-400'
+                      }`}
                     />
                   </div>
                   <div>
-                    <label className="block text-sm font-semibold text-gray-300 mb-2">Email *</label>
+                    <label className="block text-sm font-semibold theme-text-secondary mb-2">Email *</label>
                     <input
                       type="email"
                       value={studentInfo.email}
                       onChange={e => setStudentInfo({ ...studentInfo, email: e.target.value })}
-                      className="w-full px-4 py-3 rounded-xl bg-slate-800 border border-gray-700 text-white placeholder-gray-500 focus:border-indigo-500 outline-none"
+                      className={`w-full px-4 py-3 rounded-xl border focus:border-indigo-500 outline-none ${
+                        theme === 'dark' ? 'bg-slate-800 border-gray-700 text-white placeholder-gray-500' : 'bg-white border-gray-200 text-gray-900 placeholder-gray-400'
+                      }`}
                     />
                   </div>
                   <div>
-                    <label className="block text-sm font-semibold text-gray-300 mb-2">Téléphone *</label>
+                    <label className="block text-sm font-semibold theme-text-secondary mb-2">Téléphone *</label>
                     <input
                       type="tel"
                       value={studentInfo.phone}
                       onChange={e => setStudentInfo({ ...studentInfo, phone: e.target.value })}
-                      className="w-full px-4 py-3 rounded-xl bg-slate-800 border border-gray-700 text-white placeholder-gray-500 focus:border-indigo-500 outline-none"
+                      className={`w-full px-4 py-3 rounded-xl border focus:border-indigo-500 outline-none ${
+                        theme === 'dark' ? 'bg-slate-800 border-gray-700 text-white placeholder-gray-500' : 'bg-white border-gray-200 text-gray-900 placeholder-gray-400'
+                      }`}
                     />
                   </div>
                   <div className="md:col-span-2">
-                    <label className="block text-sm font-semibold text-gray-300 mb-2">Niveau scolaire *</label>
+                    <label className="block text-sm font-semibold theme-text-secondary mb-2">Niveau scolaire *</label>
                     <select
                       value={studentInfo.level}
                       onChange={e => setStudentInfo({ ...studentInfo, level: e.target.value })}
-                      className="w-full px-4 py-3 rounded-xl bg-slate-800 border border-gray-700 text-white focus:border-indigo-500 outline-none"
+                      className={`w-full px-4 py-3 rounded-xl border focus:border-indigo-500 outline-none ${
+                        theme === 'dark' ? 'bg-slate-800 border-gray-700 text-white' : 'bg-white border-gray-200 text-gray-900'
+                      }`}
                     >
                       <option value="">-- Choisir --</option>
                       <option value="6ème">6ème</option>
@@ -591,7 +603,9 @@ export default function HomePage() {
               <div className="flex gap-3 mt-8">
                 <button
                   onClick={() => setStep(2)}
-                  className="px-6 py-4 rounded-xl border border-gray-700 font-semibold text-gray-300 hover:bg-slate-800 transition-all"
+                  className={`px-6 py-4 rounded-xl font-semibold transition-all ${
+                    theme === 'dark' ? 'border border-gray-700 text-gray-300 hover:bg-slate-800' : 'border border-gray-200 text-gray-700 hover:bg-gray-50'
+                  }`}
                 >
                   Retour
                 </button>
@@ -609,18 +623,22 @@ export default function HomePage() {
 
         {/* Pricing */}
         <div className="mt-16 text-center">
-          <h3 className="text-2xl font-bold text-white mb-8">Tarifs transparents</h3>
+          <h3 className="text-2xl font-bold theme-text-primary mb-8">Tarifs transparents</h3>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
             {[
               { duration: '1h', price: '45€', desc: 'Séance ponctuelle' },
               { duration: '1h30', price: '65€', desc: 'Recommandé', popular: true },
               { duration: '2h', price: '85€', desc: 'Session intensive' },
             ].map(t => (
-              <div key={t.duration} className={`p-6 rounded-2xl border-2 ${t.popular ? 'border-indigo-500 bg-indigo-500/10' : 'border-gray-800 bg-slate-900/50'}`}>
+              <div key={t.duration} className={`p-6 rounded-2xl border-2 ${
+                t.popular
+                  ? 'border-indigo-500 bg-indigo-500/10'
+                  : theme === 'dark' ? 'border-gray-800 bg-slate-900/50' : 'border-gray-200 bg-white'
+              }`}>
                 {t.popular && <span className="text-xs font-bold text-indigo-300 bg-indigo-500/20 px-3 py-1 rounded-full">Populaire</span>}
-                <div className="text-3xl font-bold text-white mt-2">{t.price}</div>
-                <div className="text-gray-400">{t.duration} / séance</div>
-                <div className="text-sm text-gray-500 mt-2">{t.desc}</div>
+                <div className="text-3xl font-bold theme-text-primary mt-2">{t.price}</div>
+                <div className="theme-text-secondary">{t.duration} / séance</div>
+                <div className="text-sm theme-text-muted mt-2">{t.desc}</div>
               </div>
             ))}
           </div>
@@ -628,37 +646,37 @@ export default function HomePage() {
       </section>
 
       {/* Footer */}
-      <footer className="relative z-10 border-t border-gray-800 py-8 mt-16">
+      <footer className={`relative z-10 border-t py-8 mt-16 ${theme === 'dark' ? 'border-gray-800' : 'border-gray-200'}`}>
         <div className="max-w-7xl mx-auto px-4">
           <div className="flex flex-col md:flex-row items-center justify-between gap-4">
             <div className="flex items-center gap-2">
               <Sigma className="w-6 h-6 text-indigo-400" />
-              <span className="text-white font-bold">MathPro</span>
-              <span className="text-gray-500 text-sm">— Cours particuliers de mathématiques</span>
+              <span className="font-bold theme-text-primary">MathPro</span>
+              <span className="theme-text-muted text-sm">— Cours particuliers de mathématiques</span>
             </div>
             <div className="flex items-center gap-4">
               <button
                 onClick={() => window.location.hash = '#student-login'}
-                className="flex items-center gap-2 text-sm text-gray-400 hover:text-white transition-colors"
+                className="flex items-center gap-2 text-sm theme-text-muted hover:theme-text-primary transition-colors"
               >
                 <UserPlus className="w-4 h-4" /> Espace élève
               </button>
               <button
                 onClick={() => window.location.hash = '#admin'}
-                className="text-sm text-gray-600 hover:text-gray-400 transition-colors"
+                className="text-sm theme-text-muted hover:theme-text-secondary transition-colors"
               >
                 Espace professeur
               </button>
               <a
                 href="/guide-github.html"
                 target="_blank"
-                className="text-sm text-gray-600 hover:text-gray-400 transition-colors"
+                className="text-sm theme-text-muted hover:theme-text-secondary transition-colors"
               >
                 📤 Guide GitHub
               </a>
             </div>
           </div>
-          <div className="text-center text-xs text-gray-600 mt-6">
+          <div className="text-center text-xs theme-text-muted mt-6">
             © 2026 MathPro — Tous droits réservés
           </div>
         </div>

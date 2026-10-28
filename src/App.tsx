@@ -31,11 +31,18 @@ function AppContent() {
         setCurrentPage('student-dashboard');
       } else if (hash === '#student-profile' && currentStudentId) {
         setCurrentPage('student-profile');
+      } else if (hash === '' || hash === '#' || hash === '#home') {
+        // Retour à l'accueil
+        setCurrentPage('home');
       }
     };
     handleHashChange();
     window.addEventListener('hashchange', handleHashChange);
-    return () => window.removeEventListener('hashchange', handleHashChange);
+    window.addEventListener('popstate', handleHashChange);
+    return () => {
+      window.removeEventListener('hashchange', handleHashChange);
+      window.removeEventListener('popstate', handleHashChange);
+    };
   }, [currentStudentId]);
 
   // Auto-navigate to student dashboard if logged in
@@ -60,6 +67,10 @@ function AppContent() {
 
   // Student views
   if (currentStudentId && !isAdmin) {
+    // Si on veut retourner à l'accueil
+    if (currentPage === 'home') {
+      return <HomePage />;
+    }
     if (currentPage === 'student-profile') {
       return <StudentProfilePage />;
     }
@@ -70,7 +81,11 @@ function AppContent() {
   }
 
   // Admin views
-  if (isAdmin && currentPage !== 'home') {
+  if (isAdmin) {
+    // Si on veut retourner à l'accueil
+    if (currentPage === 'home') {
+      return <HomePage />;
+    }
     return (
       <AdminLayout currentPage={currentPage} onPageChange={setCurrentPage}>
         {currentPage === 'dashboard' && <DashboardPage />}
