@@ -1,5 +1,5 @@
 import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
-import { Student, Appointment, Invoice, PurchaseOrder, Document, CompanyInfo, EmailLog, Theme, AutomationSettings } from '../types';
+import { Student, Appointment, Invoice, PurchaseOrder, Document, CompanyInfo, EmailLog, Theme, AutomationSettings, PricingSettings } from '../types';
 import { v4 as uuidv4 } from 'uuid';
 import { format } from 'date-fns';
 import { fr } from 'date-fns/locale';
@@ -13,6 +13,7 @@ interface AppState {
   companyInfo: CompanyInfo;
   emailLogs: EmailLog[];
   automationSettings: AutomationSettings;
+  pricingSettings: PricingSettings;
   isAdmin: boolean;
   currentStudentId: string | null;
   theme: Theme;
@@ -53,6 +54,8 @@ interface AppContextType extends AppState {
   updateCompanyInfo: (data: Partial<CompanyInfo>) => void;
   // Automation
   updateAutomationSettings: (data: Partial<AutomationSettings>) => void;
+  // Pricing
+  updatePricingSettings: (data: Partial<PricingSettings>) => void;
   // Theme
   setTheme: (theme: Theme) => void;
   toggleTheme: () => void;
@@ -107,6 +110,11 @@ function loadFromStorage(): AppState {
       autoGenerateInvoice: true,
       autoSendEmails: true,
     },
+    pricingSettings: parsed.pricingSettings || {
+      price1h: 45,
+      price1h30: 65,
+      price2h: 85,
+    },
     isAdmin: parsed.isAdmin || false,
     currentStudentId: parsed.currentStudentId || null,
     theme: (localStorage.getItem(THEME_KEY) as Theme) || 'dark',
@@ -126,6 +134,11 @@ function loadFromStorage(): AppState {
       autoGeneratePurchaseOrder: true,
       autoGenerateInvoice: true,
       autoSendEmails: true,
+    },
+    pricingSettings: {
+      price1h: 45,
+      price1h30: 65,
+      price2h: 85,
     },
     isAdmin: false,
     currentStudentId: null,
@@ -168,6 +181,11 @@ function getSampleData(): AppState {
         autoGeneratePurchaseOrder: true,
         autoGenerateInvoice: true,
         autoSendEmails: true,
+      },
+      pricingSettings: {
+        price1h: 45,
+        price1h30: 65,
+        price2h: 85,
       },
       students: [
         {
@@ -559,6 +577,13 @@ export function AppProvider({ children }: { children: ReactNode }) {
     }));
   };
 
+  const updatePricingSettings = (data: Partial<PricingSettings>) => {
+    setState(prev => ({
+      ...prev,
+      pricingSettings: { ...prev.pricingSettings, ...data },
+    }));
+  };
+
   const setIsAdmin = (val: boolean) => {
     setState(prev => ({ ...prev, isAdmin: val }));
   };
@@ -610,6 +635,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
       deleteDocument,
       updateCompanyInfo,
       updateAutomationSettings,
+      updatePricingSettings,
       setTheme,
       toggleTheme,
       sendEmail,

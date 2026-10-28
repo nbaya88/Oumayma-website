@@ -1,22 +1,32 @@
 import React, { useState } from 'react';
 import { useApp } from '../context/AppContext';
-import { ChevronLeft, ChevronRight, Clock, CheckCircle, XCircle, Trash2, Archive, Edit2, Save } from 'lucide-react';
+import { ChevronLeft, ChevronRight, Clock, CheckCircle, XCircle, Trash2, Archive, Edit2, Save, Plus } from 'lucide-react';
 import { format, startOfMonth, endOfMonth, eachDayOfInterval, isSameDay, addMonths, subMonths, isToday } from 'date-fns';
 import { fr } from 'date-fns/locale';
 
 export default function CalendarPage() {
-  const { appointments, students, getStudentById, confirmAppointment, cancelAppointment, deleteAppointment, archiveAppointment, completeAppointment, updateAppointment } = useApp();
+  const { appointments, students, getStudentById, confirmAppointment, cancelAppointment, deleteAppointment, archiveAppointment, completeAppointment, updateAppointment, addAppointment, pricingSettings } = useApp();
   const [currentMonth, setCurrentMonth] = useState(new Date());
   const [selectedDay, setSelectedDay] = useState<Date | null>(null);
   const [selectedAppointment, setSelectedAppointment] = useState<string | null>(null);
   const [showModal, setShowModal] = useState(false);
   const [editMode, setEditMode] = useState(false);
+  const [showCreateModal, setShowCreateModal] = useState(false);
   const [editForm, setEditForm] = useState({
     date: '',
     time: '',
     duration: 60,
     subject: '',
     status: 'pending' as 'pending' | 'confirmed' | 'cancelled' | 'completed',
+    notes: '',
+    price: 45,
+  });
+  const [createForm, setCreateForm] = useState({
+    studentId: '',
+    date: '',
+    time: '',
+    duration: 60,
+    subject: '',
     notes: '',
     price: 45,
   });
@@ -83,6 +93,36 @@ export default function CalendarPage() {
     updateAppointment(id, { status: newStatus });
   };
 
+  const handleCreateAppointment = () => {
+    if (!createForm.studentId || !createForm.date || !createForm.time || !createForm.subject) {
+      alert('Veuillez remplir tous les champs obligatoires');
+      return;
+    }
+
+    addAppointment({
+      studentId: createForm.studentId,
+      date: createForm.date,
+      time: createForm.time,
+      duration: createForm.duration,
+      subject: createForm.subject,
+      status: 'pending',
+      notes: createForm.notes,
+      price: createForm.price,
+      paid: false,
+    });
+
+    setShowCreateModal(false);
+    setCreateForm({
+      studentId: '',
+      date: '',
+      time: '',
+      duration: 60,
+      subject: '',
+      notes: '',
+      price: 45,
+    });
+  };
+
   const getStatusColor = (status: string) => {
     switch (status) {
       case 'confirmed': return 'bg-green-500';
@@ -106,7 +146,15 @@ export default function CalendarPage() {
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
-        <h2 className="text-2xl font-bold text-gray-900">Calendrier</h2>
+        <div className="flex items-center gap-4">
+          <h2 className="text-2xl font-bold text-gray-900">Calendrier</h2>
+          <button
+            onClick={() => setShowCreateModal(true)}
+            className="flex items-center gap-2 px-4 py-2 bg-indigo-600 text-white rounded-xl font-medium text-sm hover:bg-indigo-700 transition-colors"
+          >
+            <Plus className="w-4 h-4" /> Nouveau RDV
+          </button>
+        </div>
         <div className="flex items-center gap-2">
           <span className="flex items-center gap-1 text-xs text-gray-500">
             <span className="w-3 h-3 rounded-full bg-green-500"></span> Confirmé

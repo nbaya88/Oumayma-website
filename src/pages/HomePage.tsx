@@ -5,7 +5,7 @@ import { format, addDays } from 'date-fns';
 import { fr } from 'date-fns/locale';
 
 export default function HomePage() {
-  const { students, appointments, addAppointment, addStudent, theme, toggleTheme, sendEmail, findStudentByEmailOrPhone } = useApp();
+  const { students, appointments, addAppointment, addStudent, theme, toggleTheme, sendEmail, findStudentByEmailOrPhone, pricingSettings } = useApp();
   const [step, setStep] = useState(1);
   const [selectedDate, setSelectedDate] = useState('');
   const [selectedTime, setSelectedTime] = useState('');
@@ -26,13 +26,19 @@ export default function HomePage() {
 
   const getAvailableDates = () => {
     const dates = [];
-    const today = new Date();
-    const targetMonth = new Date(today.getFullYear(), today.getMonth() + calendarMonth + 1, 1);
+    const now = new Date();
+    // Utiliser le fuseau horaire de Paris
+    const parisTime = new Date(now.toLocaleString('en-US', { timeZone: 'Europe/Paris' }));
+    const today = new Date(parisTime.getFullYear(), parisTime.getMonth(), parisTime.getDate());
+
+    // Mois cible : mois actuel + calendarMonth
+    const targetMonth = new Date(today.getFullYear(), today.getMonth() + calendarMonth, 1);
     const daysInMonth = new Date(targetMonth.getFullYear(), targetMonth.getMonth() + 1, 0).getDate();
 
     for (let day = 1; day <= daysInMonth; day++) {
       const date = new Date(targetMonth.getFullYear(), targetMonth.getMonth(), day);
-      if (date > today && date.getDay() !== 0) { // Exclure les dimanches et dates passées
+      // Inclure aujourd'hui et les jours futurs, exclure les dimanches
+      if (date >= today && date.getDay() !== 0) {
         dates.push(date);
       }
     }
@@ -40,8 +46,10 @@ export default function HomePage() {
   };
 
   const getMonthLabel = () => {
-    const today = new Date();
-    const targetMonth = new Date(today.getFullYear(), today.getMonth() + calendarMonth + 1, 1);
+    const now = new Date();
+    const parisTime = new Date(now.toLocaleString('en-US', { timeZone: 'Europe/Paris' }));
+    const today = new Date(parisTime.getFullYear(), parisTime.getMonth(), parisTime.getDate());
+    const targetMonth = new Date(today.getFullYear(), today.getMonth() + calendarMonth, 1);
     return format(targetMonth, 'MMMM yyyy', { locale: fr });
   };
 
@@ -49,12 +57,21 @@ export default function HomePage() {
     return !activeAppointments.some(a => a.date === date && a.time === time);
   };
 
+  const isTimeSlotPassed = (date: string, time: string) => {
+    const now = new Date();
+    const parisTime = new Date(now.toLocaleString('en-US', { timeZone: 'Europe/Paris' }));
+    const [hours, minutes] = time.split(':').map(Number);
+    const slotDate = new Date(date);
+    slotDate.setHours(hours, minutes, 0, 0);
+    return slotDate < parisTime;
+  };
+
   const getPrice = () => {
     switch (selectedDuration) {
-      case 60: return 45;
-      case 90: return 65;
-      case 120: return 85;
-      default: return 45;
+      case 60: return pricingSettings.price1h;
+      case 90: return pricingSettings.price1h30;
+      case 120: return pricingSettings.price2h;
+      default: return pricingSettings.price1h;
     }
   };
 
@@ -510,9 +527,9 @@ export default function HomePage() {
                 <label className="block text-sm font-semibold theme-text-secondary mb-3">Durée du cours</label>
                 <div className="grid grid-cols-3 gap-3">
                   {[
-                    { value: 60, label: '1h', price: '45€' },
-                    { value: 90, label: '1h30', price: '65€' },
-                    { value: 120, label: '2h', price: '85€' },
+                    { value: 60, label: '1h', price: `${pricingSettings.price1h}€` },
+                    { value: 90, label: '1h30', price: `${pricingSettings.price1h30}€` },
+                    { value: 120, label: '2h', price: `${pricingSettings.price2h}€` },
                   ].map(d => (
                     <button
                       key={d.value}
@@ -590,13 +607,16 @@ export default function HomePage() {
                   <div className="grid grid-cols-3 md:grid-cols-5 gap-2">
                     {availableTimes.map(time => {
                       const available = isTimeSlotAvailable(selectedDate, time);
+                      const passed = isTimeSlotPassed(selectedDate, time);
                       return (
                         <button
                           key={time}
-                          onClick={() => available && setSelectedTime(time)}
-                          disabled={!available}
+                          onClick={() => available && !passed && setSelectedTime(time)}
+                          disabled={!available || passed}
                           className={`p-3 rounded-xl text-center font-medium transition-all ${
-                            !available
+                            passed
+                              ? theme === 'dark' ? 'bg-red-900/20 text-red-400 cursor-not-allowed line-through' : 'bg-red-50 text-red-300 cursor-not-allowed line-through'
+                              : !available
                               ? theme === 'dark' ? 'bg-slate-800/30 text-gray-600 cursor-not-allowed line-through' : 'bg-gray-100 text-gray-300 cursor-not-allowed line-through'
                               : selectedTime === time
                               ? 'bg-indigo-600 text-white shadow-lg'
@@ -826,9 +846,9 @@ export default function HomePage() {
           <h3 className={`text-2xl font-bold mb-8 ${theme === 'dark' ? 'text-white' : 'text-gray-900'}`}>Tarifs transparents</h3>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
             {[
-              { duration: '1h', price: '45€', desc: 'Séance ponctuelle' },
-              { duration: '1h30', price: '65€', desc: 'Recommandé', popular: true },
-              { duration: '2h', price: '85€', desc: 'Session intensive' },
+              { duration: '1h', price: `${pricingSettings.price1h}€`, desc: 'Séance ponctuelle' },
+              { duration: '1h30', price: `${pricingSettings.price1h30}€`, desc: 'Recommandé', popular: true },
+              { duration: '2h', price: `${pricingSettings.price2h}€`, desc: 'Session intensive' },
             ].map(t => (
               <div key={t.duration} className={`p-6 rounded-2xl border-2 ${
                 t.popular

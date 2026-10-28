@@ -1,12 +1,12 @@
 import React, { useState } from 'react';
 import { useApp } from '../context/AppContext';
-import { Building2, Save, CheckCircle, FileText, CreditCard, MapPin, Phone, Mail, Globe, AlertCircle, Settings } from 'lucide-react';
+import { Building2, Save, CheckCircle, FileText, CreditCard, MapPin, Phone, Mail, Globe, AlertCircle, Settings, Euro } from 'lucide-react';
 
 export default function SettingsPage() {
-  const { companyInfo, updateCompanyInfo, automationSettings, updateAutomationSettings, emailLogs } = useApp();
+  const { companyInfo, updateCompanyInfo, automationSettings, updateAutomationSettings, pricingSettings, updatePricingSettings, emailLogs } = useApp();
   const [form, setForm] = useState(companyInfo);
   const [saved, setSaved] = useState(false);
-  const [activeSection, setActiveSection] = useState<'company' | 'bank' | 'automation' | 'emails'>('company');
+  const [activeSection, setActiveSection] = useState<'company' | 'bank' | 'automation' | 'pricing' | 'emails'>('company');
 
   const handleSave = () => {
     updateCompanyInfo(form);
@@ -17,6 +17,7 @@ export default function SettingsPage() {
   const sections = [
     { id: 'company', label: 'Société', icon: <Building2 className="w-4 h-4" /> },
     { id: 'bank', label: 'Paiement', icon: <CreditCard className="w-4 h-4" /> },
+    { id: 'pricing', label: 'Tarifs', icon: <Euro className="w-4 h-4" /> },
     { id: 'automation', label: 'Automatisation', icon: <Settings className="w-4 h-4" /> },
     { id: 'emails', label: 'Emails envoyés', icon: <Mail className="w-4 h-4" /> },
   ];
@@ -48,8 +49,8 @@ export default function SettingsPage() {
       <div className="bg-blue-50 border border-blue-200 rounded-xl p-4 flex items-start gap-3">
         <AlertCircle className="w-5 h-5 text-blue-600 flex-shrink-0 mt-0.5" />
         <div className="text-sm text-blue-800">
-          <strong>Obligations légales :</strong> Selon l'article R123-67 du Code de Commerce et l'article A123-3 du Code de Commerce, 
-          vos factures doivent obligatoirement mentionner votre SIRET, le numéro de TVA (si applicable), et la mention 
+          <strong>Obligations légales :</strong> Selon l'article R123-67 du Code de Commerce et l'article A123-3 du Code de Commerce,
+          vos factures doivent obligatoirement mentionner votre SIRET, le numéro de TVA (si applicable), et la mention
           "Dispensé d'immatriculation..." pour les auto-entrepreneurs.
         </div>
       </div>
@@ -333,6 +334,64 @@ export default function SettingsPage() {
           <div className="bg-gray-50 rounded-xl p-4">
             <p className="text-sm text-gray-600">
               <strong>💡 Conseil :</strong> Ces informations apparaîtront sur vos factures pour faciliter le paiement par virement de vos élèves.
+            </p>
+          </div>
+        </div>
+      )}
+
+      {/* Pricing Section */}
+      {activeSection === 'pricing' && (
+        <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-6 space-y-6">
+          <h3 className="text-lg font-bold text-gray-900 flex items-center gap-2">
+            <Euro className="w-5 h-5 text-indigo-600" />
+            Tarifs des cours
+          </h3>
+
+          <div className="bg-blue-50 border border-blue-200 rounded-xl p-4 mb-6">
+            <p className="text-sm text-blue-800">
+              <strong>💡 Information :</strong> Ces tarifs seront affichés sur la page d'accueil et utilisés pour calculer le prix des réservations.
+            </p>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">Prix 1 heure (€)</label>
+              <input
+                type="number"
+                value={pricingSettings.price1h}
+                onChange={e => updatePricingSettings({ price1h: parseFloat(e.target.value) || 0 })}
+                min="0"
+                step="5"
+                className="w-full px-4 py-3 rounded-xl border border-gray-200 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-200 outline-none transition-all"
+              />
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">Prix 1h30 (€)</label>
+              <input
+                type="number"
+                value={pricingSettings.price1h30}
+                onChange={e => updatePricingSettings({ price1h30: parseFloat(e.target.value) || 0 })}
+                min="0"
+                step="5"
+                className="w-full px-4 py-3 rounded-xl border border-gray-200 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-200 outline-none transition-all"
+              />
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">Prix 2 heures (€)</label>
+              <input
+                type="number"
+                value={pricingSettings.price2h}
+                onChange={e => updatePricingSettings({ price2h: parseFloat(e.target.value) || 0 })}
+                min="0"
+                step="5"
+                className="w-full px-4 py-3 rounded-xl border border-gray-200 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-200 outline-none transition-all"
+              />
+            </div>
+          </div>
+
+          <div className="bg-green-50 border border-green-200 rounded-xl p-4 mt-6">
+            <p className="text-sm text-green-800">
+              <strong>✅ Sauvegarde automatique :</strong> Les modifications sont enregistrées instantanément et mises à jour sur la page d'accueil.
             </p>
           </div>
         </div>

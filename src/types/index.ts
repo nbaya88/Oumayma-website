@@ -100,6 +100,12 @@ export interface AutomationSettings {
   autoSendEmails: boolean;
 }
 
+export interface PricingSettings {
+  price1h: number;
+  price1h30: number;
+  price2h: number;
+}
+
 export interface EmailLog {
   id: string;
   to: string;
