@@ -15,6 +15,10 @@ dist/
 *.swp
 *.swo
 
+# Autres fichiers sensibles
+*.key
+*.pem
+
 # OS files
 .DS_Store
 Thumbs.db

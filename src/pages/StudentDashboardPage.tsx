@@ -161,6 +161,17 @@ export default function StudentDashboardPage() {
               Accueil
             </button>
             <button
+              onClick={() => {
+                window.location.hash = '';
+                setTimeout(() => {
+                  document.getElementById('booking')?.scrollIntoView({ behavior: 'smooth' });
+                }, 100);
+              }}
+              className="flex items-center gap-2 text-sm text-white bg-indigo-600 hover:bg-indigo-500 px-3 py-2 rounded-lg transition-colors"
+            >
+              <Calendar className="w-4 h-4" /> Réserver
+            </button>
+            <button
               onClick={() => window.location.hash = '#student-profile'}
               className="flex items-center gap-2 text-sm text-gray-600 hover:text-gray-800 px-3 py-2 rounded-lg hover:bg-gray-100 transition-colors"
             >

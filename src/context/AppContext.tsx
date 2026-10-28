@@ -1,5 +1,5 @@
 import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
-import { Student, Appointment, Invoice, PurchaseOrder, Document, CompanyInfo, EmailLog, Theme } from '../types';
+import { Student, Appointment, Invoice, PurchaseOrder, Document, CompanyInfo, EmailLog, Theme, AutomationSettings } from '../types';
 import { v4 as uuidv4 } from 'uuid';
 import { format } from 'date-fns';
 import { fr } from 'date-fns/locale';
@@ -12,6 +12,7 @@ interface AppState {
   documents: Document[];
   companyInfo: CompanyInfo;
   emailLogs: EmailLog[];
+  automationSettings: AutomationSettings;
   isAdmin: boolean;
   currentStudentId: string | null;
   theme: Theme;
@@ -50,6 +51,8 @@ interface AppContextType extends AppState {
   deleteDocument: (id: string) => void;
   // Company
   updateCompanyInfo: (data: Partial<CompanyInfo>) => void;
+  // Automation
+  updateAutomationSettings: (data: Partial<AutomationSettings>) => void;
   // Theme
   setTheme: (theme: Theme) => void;
   toggleTheme: () => void;
@@ -91,19 +94,23 @@ function loadFromStorage(): AppState {
     const data = localStorage.getItem(STORAGE_KEY);
     if (data) {
       const parsed = JSON.parse(data);
-      return {
-        students: parsed.students || [],
-        appointments: parsed.appointments || [],
-        invoices: parsed.invoices || [],
-        purchaseOrders: parsed.purchaseOrders || [],
-        documents: parsed.documents || [],
-        companyInfo: parsed.companyInfo || defaultCompanyInfo,
-        emailLogs: parsed.emailLogs || [],
-        isAdmin: parsed.isAdmin || false,
-        currentStudentId: parsed.currentStudentId || null,
-        theme: (localStorage.getItem(THEME_KEY) as Theme) || 'dark',
-      };
-    }
+  return {
+    students: parsed.students || [],
+    appointments: parsed.appointments || [],
+    invoices: parsed.invoices || [],
+    purchaseOrders: parsed.purchaseOrders || [],
+    documents: parsed.documents || [],
+    companyInfo: parsed.companyInfo || defaultCompanyInfo,
+    emailLogs: parsed.emailLogs || [],
+    automationSettings: parsed.automationSettings || {
+      autoGeneratePurchaseOrder: true,
+      autoGenerateInvoice: true,
+      autoSendEmails: true,
+    },
+    isAdmin: parsed.isAdmin || false,
+    currentStudentId: parsed.currentStudentId || null,
+    theme: (localStorage.getItem(THEME_KEY) as Theme) || 'dark',
+  };    }
   } catch (e) {
     console.error('Error loading from storage', e);
   }
@@ -115,6 +122,11 @@ function loadFromStorage(): AppState {
     documents: [],
     companyInfo: defaultCompanyInfo,
     emailLogs: [],
+    automationSettings: {
+      autoGeneratePurchaseOrder: true,
+      autoGenerateInvoice: true,
+      autoSendEmails: true,
+    },
     isAdmin: false,
     currentStudentId: null,
     theme: (localStorage.getItem(THEME_KEY) as Theme) || 'dark',
@@ -151,21 +163,25 @@ function getSampleData(): AppState {
   const nextWeek = new Date(today);
   nextWeek.setDate(nextWeek.getDate() + 7);
 
-  return {
-    students: [
-      {
-        id: student1Id,
-        firstName: 'Marie',
-        lastName: 'Dupont',
-        email: 'marie.dupont@email.com',
-        phone: '06 12 34 56 78',
-        level: 'Terminale S',
-        notes: 'Préparation bac, difficultés en analyse',
-        password: 'Marie2026',
-        createdAt: new Date().toISOString(),
-        archived: false,
+    return {
+      automationSettings: {
+        autoGeneratePurchaseOrder: true,
+        autoGenerateInvoice: true,
+        autoSendEmails: true,
       },
-      {
+      students: [
+        {
+          id: student1Id,
+          firstName: 'Marie',
+          lastName: 'Dupont',
+          email: 'marie.dupont@email.com',
+          phone: '06 12 34 56 78',
+          level: 'Terminale S',
+          notes: 'Préparation bac, difficultés en analyse',
+          password: 'Marie2026',
+          createdAt: new Date().toISOString(),
+          archived: false,
+        },      {
         id: student2Id,
         firstName: 'Lucas',
         lastName: 'Martin',
@@ -391,14 +407,16 @@ export function AppProvider({ children }: { children: ReactNode }) {
       appointments: prev.appointments.map(a => a.id === apt.id ? { ...a, purchaseOrderId: poId } : a),
     }));
 
-    // Send email to student
-    sendEmail(
-      student.email,
-      `Votre bon de commande ${poNumber} - MathPro`,
-      `Bonjour ${student.firstName},\n\nVotre cours de ${apt.subject} prévu le ${format(new Date(apt.date + 'T00:00:00'), 'dd MMMM yyyy', { locale: fr })} à ${apt.time} a été confirmé.\n\nBon de commande N° ${poNumber}\nMontant: ${apt.price}€\n\nCordialement,\nMathPro`,
-      'purchase-order',
-      poId
-    );
+    // Send email to student if enabled
+    if (state.automationSettings.autoSendEmails) {
+      sendEmail(
+        student.email,
+        `Votre bon de commande ${poNumber} - MathPro`,
+        `Bonjour ${student.firstName},\n\nVotre cours de ${apt.subject} prévu le ${format(new Date(apt.date + 'T00:00:00'), 'dd MMMM yyyy', { locale: fr })} à ${apt.time} a été confirmé.\n\nBon de commande N° ${poNumber}\nMontant: ${apt.price}€\n\nCordialement,\nMathPro`,
+        'purchase-order',
+        poId
+      );
+    }
 
     return poId;
   };
@@ -444,22 +462,26 @@ export function AppProvider({ children }: { children: ReactNode }) {
       appointments: prev.appointments.map(a => a.id === apt.id ? { ...a, invoiceId, paid: true } : a),
     }));
 
-    // Send email to student
-    sendEmail(
-      student.email,
-      `Votre facture ${invoiceNumber} - MathPro`,
-      `Bonjour ${student.firstName},\n\nVotre cours de ${apt.subject} du ${format(new Date(apt.date + 'T00:00:00'), 'dd MMMM yyyy', { locale: fr })} est maintenant terminé.\n\nFacture N° ${invoiceNumber}\nMontant: ${apt.price}€\nÉchéance: ${format(dueDate, 'dd/MM/yyyy', { locale: fr })}\n\nMerci de régler par virement sur le IBAN indiqué.\n\nCordialement,\nMathPro`,
-      'invoice',
-      invoiceId
-    );
+    // Send email to student if enabled
+    if (state.automationSettings.autoSendEmails) {
+      sendEmail(
+        student.email,
+        `Votre facture ${invoiceNumber} - MathPro`,
+        `Bonjour ${student.firstName},\n\nVotre cours de ${apt.subject} du ${format(new Date(apt.date + 'T00:00:00'), 'dd MMMM yyyy', { locale: fr })} est maintenant terminé.\n\nFacture N° ${invoiceNumber}\nMontant: ${apt.price}€\nÉchéance: ${format(dueDate, 'dd/MM/yyyy', { locale: fr })}\n\nMerci de régler par virement sur le IBAN indiqué.\n\nCordialement,\nMathPro`,
+        'invoice',
+        invoiceId
+      );
+    }
 
     return invoiceId;
   };
 
   const confirmAppointment = (id: string) => {
     updateAppointment(id, { status: 'confirmed' });
-    // Auto-generate purchase order
-    setTimeout(() => generatePurchaseOrderForAppointment(id), 0);
+    // Auto-generate purchase order if enabled
+    if (state.automationSettings.autoGeneratePurchaseOrder) {
+      setTimeout(() => generatePurchaseOrderForAppointment(id), 0);
+    }
   };
 
   const cancelAppointment = (id: string) => {
@@ -468,8 +490,10 @@ export function AppProvider({ children }: { children: ReactNode }) {
 
   const completeAppointment = (id: string) => {
     updateAppointment(id, { status: 'completed' });
-    // Auto-generate invoice
-    setTimeout(() => generateInvoiceForAppointment(id), 0);
+    // Auto-generate invoice if enabled
+    if (state.automationSettings.autoGenerateInvoice) {
+      setTimeout(() => generateInvoiceForAppointment(id), 0);
+    }
   };
 
   const addInvoice = (invoice: Omit<Invoice, 'id' | 'createdAt'>) => {
@@ -528,6 +552,13 @@ export function AppProvider({ children }: { children: ReactNode }) {
     }));
   };
 
+  const updateAutomationSettings = (data: Partial<AutomationSettings>) => {
+    setState(prev => ({
+      ...prev,
+      automationSettings: { ...prev.automationSettings, ...data },
+    }));
+  };
+
   const setIsAdmin = (val: boolean) => {
     setState(prev => ({ ...prev, isAdmin: val }));
   };
@@ -578,6 +609,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
       addDocument,
       deleteDocument,
       updateCompanyInfo,
+      updateAutomationSettings,
       setTheme,
       toggleTheme,
       sendEmail,

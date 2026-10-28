@@ -1,11 +1,11 @@
 import React, { useState } from 'react';
 import { useApp } from '../context/AppContext';
-import { Calendar, Clock, BookOpen, CheckCircle, ArrowRight, GraduationCap, Star, Users, Award, TrendingUp, Calculator, Sigma, Pi, FunctionSquare, Atom, FlaskConical, LogIn, UserPlus } from 'lucide-react';
+import { Calendar, Clock, BookOpen, CheckCircle, ArrowRight, GraduationCap, Star, Users, Award, TrendingUp, Calculator, Sigma, Pi, FunctionSquare, Atom, FlaskConical, LogIn, UserPlus, Sun, Moon } from 'lucide-react';
 import { format, addDays } from 'date-fns';
 import { fr } from 'date-fns/locale';
 
 export default function HomePage() {
-  const { students, appointments, addAppointment, addStudent } = useApp();
+  const { students, appointments, addAppointment, addStudent, theme, toggleTheme } = useApp();
   const [step, setStep] = useState(1);
   const [selectedDate, setSelectedDate] = useState('');
   const [selectedTime, setSelectedTime] = useState('');
@@ -164,6 +164,14 @@ export default function HomePage() {
           </div>
         </div>
         <div className="flex items-center gap-3">
+          {/* Theme Toggle */}
+          <button
+            onClick={toggleTheme}
+            className="p-2 rounded-xl border border-gray-700 hover:border-gray-500 transition-all"
+            title={theme === 'dark' ? 'Passer en mode clair' : 'Passer en mode sombre'}
+          >
+            {theme === 'dark' ? <Sun className="w-5 h-5 text-yellow-400" /> : <Moon className="w-5 h-5 text-indigo-400" />}
+          </button>
           <button
             onClick={() => window.location.hash = '#student-login'}
             className="flex items-center gap-2 px-4 py-2 text-sm text-indigo-300 hover:text-white border border-indigo-500/30 rounded-xl hover:border-indigo-400 transition-all"

@@ -1,12 +1,12 @@
 import React, { useState } from 'react';
 import { useApp } from '../context/AppContext';
-import { Building2, Save, CheckCircle, FileText, CreditCard, MapPin, Phone, Mail, Globe, AlertCircle } from 'lucide-react';
+import { Building2, Save, CheckCircle, FileText, CreditCard, MapPin, Phone, Mail, Globe, AlertCircle, Settings } from 'lucide-react';
 
 export default function SettingsPage() {
-  const { companyInfo, updateCompanyInfo, emailLogs } = useApp();
+  const { companyInfo, updateCompanyInfo, automationSettings, updateAutomationSettings, emailLogs } = useApp();
   const [form, setForm] = useState(companyInfo);
   const [saved, setSaved] = useState(false);
-  const [activeSection, setActiveSection] = useState<'company' | 'bank' | 'emails'>('company');
+  const [activeSection, setActiveSection] = useState<'company' | 'bank' | 'automation' | 'emails'>('company');
 
   const handleSave = () => {
     updateCompanyInfo(form);
@@ -17,6 +17,7 @@ export default function SettingsPage() {
   const sections = [
     { id: 'company', label: 'Société', icon: <Building2 className="w-4 h-4" /> },
     { id: 'bank', label: 'Paiement', icon: <CreditCard className="w-4 h-4" /> },
+    { id: 'automation', label: 'Automatisation', icon: <Settings className="w-4 h-4" /> },
     { id: 'emails', label: 'Emails envoyés', icon: <Mail className="w-4 h-4" /> },
   ];
 
@@ -332,6 +333,87 @@ export default function SettingsPage() {
           <div className="bg-gray-50 rounded-xl p-4">
             <p className="text-sm text-gray-600">
               <strong>💡 Conseil :</strong> Ces informations apparaîtront sur vos factures pour faciliter le paiement par virement de vos élèves.
+            </p>
+          </div>
+        </div>
+      )}
+
+      {/* Automation Section */}
+      {activeSection === 'automation' && (
+        <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-6 space-y-6">
+          <h3 className="text-lg font-bold text-gray-900 flex items-center gap-2">
+            <Settings className="w-5 h-5 text-indigo-600" />
+            Paramètres d'automatisation
+          </h3>
+
+          <div className="bg-blue-50 border border-blue-200 rounded-xl p-4 mb-6">
+            <p className="text-sm text-blue-800">
+              <strong>💡 Information :</strong> Ces paramètres contrôlent la génération automatique des documents et l'envoi des emails.
+            </p>
+          </div>
+
+          <div className="space-y-4">
+            {/* Auto-generate Purchase Order */}
+            <div className="flex items-start justify-between p-4 border border-gray-200 rounded-xl hover:border-indigo-300 transition-colors">
+              <div className="flex-1">
+                <div className="font-semibold text-gray-900 mb-1">Génération automatique des bons de commande</div>
+                <p className="text-sm text-gray-600">
+                  Un bon de commande est automatiquement généré lorsqu'un rendez-vous est confirmé.
+                </p>
+              </div>
+              <label className="relative inline-flex items-center cursor-pointer ml-4">
+                <input
+                  type="checkbox"
+                  checked={automationSettings.autoGeneratePurchaseOrder}
+                  onChange={e => updateAutomationSettings({ autoGeneratePurchaseOrder: e.target.checked })}
+                  className="sr-only peer"
+                />
+                <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-indigo-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-indigo-600"></div>
+              </label>
+            </div>
+
+            {/* Auto-generate Invoice */}
+            <div className="flex items-start justify-between p-4 border border-gray-200 rounded-xl hover:border-indigo-300 transition-colors">
+              <div className="flex-1">
+                <div className="font-semibold text-gray-900 mb-1">Génération automatique des factures</div>
+                <p className="text-sm text-gray-600">
+                  Une facture est automatiquement générée lorsqu'un rendez-vous passe en statut "Terminé".
+                </p>
+              </div>
+              <label className="relative inline-flex items-center cursor-pointer ml-4">
+                <input
+                  type="checkbox"
+                  checked={automationSettings.autoGenerateInvoice}
+                  onChange={e => updateAutomationSettings({ autoGenerateInvoice: e.target.checked })}
+                  className="sr-only peer"
+                />
+                <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-indigo-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-indigo-600"></div>
+              </label>
+            </div>
+
+            {/* Auto-send Emails */}
+            <div className="flex items-start justify-between p-4 border border-gray-200 rounded-xl hover:border-indigo-300 transition-colors">
+              <div className="flex-1">
+                <div className="font-semibold text-gray-900 mb-1">Envoi automatique des emails</div>
+                <p className="text-sm text-gray-600">
+                  Les emails de notification (mots de passe, bons de commande, factures) sont envoyés automatiquement aux élèves.
+                </p>
+              </div>
+              <label className="relative inline-flex items-center cursor-pointer ml-4">
+                <input
+                  type="checkbox"
+                  checked={automationSettings.autoSendEmails}
+                  onChange={e => updateAutomationSettings({ autoSendEmails: e.target.checked })}
+                  className="sr-only peer"
+                />
+                <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-indigo-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-indigo-600"></div>
+              </label>
+            </div>
+          </div>
+
+          <div className="bg-green-50 border border-green-200 rounded-xl p-4 mt-6">
+            <p className="text-sm text-green-800">
+              <strong>✅ Sauvegarde automatique :</strong> Les modifications sont enregistrées instantanément.
             </p>
           </div>
         </div>

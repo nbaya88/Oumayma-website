@@ -94,6 +94,12 @@ export interface CompanyInfo {
   capital: string;
 }
 
+export interface AutomationSettings {
+  autoGeneratePurchaseOrder: boolean;
+  autoGenerateInvoice: boolean;
+  autoSendEmails: boolean;
+}
+
 export interface EmailLog {
   id: string;
   to: string;
