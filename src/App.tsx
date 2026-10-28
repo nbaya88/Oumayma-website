@@ -10,6 +10,7 @@ import SettingsPage from './pages/SettingsPage';
 import StudentLoginPage from './pages/StudentLoginPage';
 import StudentDashboardPage from './pages/StudentDashboardPage';
 import StudentProfilePage from './pages/StudentProfilePage';
+import DiagnosticPage from './pages/DiagnosticPage';
 import AdminLayout from './components/AdminLayout';
 import { Page } from './types';
 
@@ -26,6 +27,11 @@ function AppContent() {
   useEffect(() => {
     const handleHashChange = () => {
       const hash = window.location.hash;
+
+      // Page de diagnostic
+      if (hash === '#diagnostic') {
+        return;
+      }
 
       // Page de réinitialisation
       if (hash === '#reset') {
@@ -97,6 +103,11 @@ function AppContent() {
       alert('Mot de passe incorrect');
     }
   };
+
+  // Diagnostic page
+  if (window.location.hash === '#diagnostic') {
+    return <DiagnosticPage />;
+  }
 
   // Student views
   if (currentStudentId && !isAdmin) {
