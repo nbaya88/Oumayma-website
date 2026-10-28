@@ -11,10 +11,18 @@
  */
 
 // URL de votre Google Apps Script Web App
-const GOOGLE_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbwprK93l5OlA3vuJsnmPNGJt1LqESTWGEjHH2H6516OYx7KU0D7uIJnPF0UjfLFBOGM/exec';
-
+const GOOGLE_SCRIPT_URL = import.meta.env.VITE_GOOGLE_SCRIPT_URL;
 // Clé d'API pour sécuriser les requêtes (à définir dans le script Google)
-const API_KEY = 'WqG3WCVn4W4z3p3cnVu97eWhNWbxadqK';
+const API_KEY = import.meta.env.VITE_API_KEY;
+
+// Vérification que les variables sont définies
+if (!GOOGLE_SCRIPT_URL) {
+  console.error('❌ VITE_GOOGLE_SCRIPT_URL n\'est pas défini dans .env.local');
+}
+if (!API_KEY) {
+  console.error('❌ VITE_API_KEY n\'est pas défini dans .env.local');
+}
+```
 
 export interface SyncResult {
   success: boolean;

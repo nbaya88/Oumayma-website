@@ -14,15 +14,40 @@ import AdminLayout from './components/AdminLayout';
 import { Page } from './types';
 
 function AppContent() {
-  const { isAdmin, setIsAdmin, currentStudentId, getStudentById } = useApp();
+  const { isAdmin, setIsAdmin, currentStudentId, getStudentById, logoutStudent } = useApp();
   const [currentPage, setCurrentPage] = useState<Page>('home');
   const [showLoginModal, setShowLoginModal] = useState(false);
   const [password, setPassword] = useState('');
+  const [showLogoutWarning, setShowLogoutWarning] = useState<'student' | 'professor' | null>(null);
+  const [pendingAction, setPendingAction] = useState<(() => void) | null>(null);
 
   // Check URL hash for admin/student access
   useEffect(() => {
     const handleHashChange = () => {
       const hash = window.location.hash;
+
+      // Vérifier si l'utilisateur essaie d'accéder à l'espace professeur alors qu'il est connecté en tant qu'élève
+      if (hash === '#admin' && currentStudentId && !isAdmin) {
+        setShowLogoutWarning('student');
+        setPendingAction(() => () => {
+          logoutStudent();
+          setShowLoginModal(true);
+        });
+        window.history.pushState({}, '', window.location.pathname);
+        return;
+      }
+
+      // Vérifier si l'utilisateur essaie d'accéder à l'espace élève alors qu'il est connecté en tant que professeur
+      if (hash === '#student-login' && isAdmin) {
+        setShowLogoutWarning('professor');
+        setPendingAction(() => () => {
+          setIsAdmin(false);
+          setCurrentPage('student-login');
+        });
+        window.history.pushState({}, '', window.location.pathname);
+        return;
+      }
+
       if (hash === '#admin') {
         setShowLoginModal(true);
       } else if (hash === '#student-login') {
@@ -43,7 +68,7 @@ function AppContent() {
       window.removeEventListener('hashchange', handleHashChange);
       window.removeEventListener('popstate', handleHashChange);
     };
-  }, [currentStudentId]);
+  }, [currentStudentId, isAdmin]);
 
   // Auto-navigate to student dashboard if logged in
   useEffect(() => {
@@ -146,6 +171,51 @@ function AppContent() {
               <p className="text-xs text-gray-400">
                 <strong>Démo :</strong> Utilisez "prof2026" ou "admin" comme mot de passe
               </p>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Logout Warning Modal */}
+      {showLogoutWarning && (
+        <div className="fixed inset-0 bg-black/60 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-2xl shadow-2xl max-w-md w-full p-8">
+            <div className="w-16 h-16 bg-amber-100 rounded-full flex items-center justify-center mx-auto mb-4">
+              <svg className="w-8 h-8 text-amber-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+              </svg>
+            </div>
+            <h3 className="text-xl font-bold text-gray-900 mb-2 text-center">Session active détectée</h3>
+            <p className="text-gray-600 text-center mb-6">
+              {showLogoutWarning === 'student' ? (
+                <>Vous êtes actuellement connecté en tant qu'<strong>élève</strong>. Pour accéder à l'espace professeur, vous devez d'abord vous déconnecter.</>
+              ) : (
+                <>Vous êtes actuellement connecté en tant que <strong>professeur</strong>. Pour accéder à l'espace élève, vous devez d'abord vous déconnecter.</>
+              )}
+            </p>
+            <div className="flex gap-3">
+              <button
+                onClick={() => {
+                  setShowLogoutWarning(null);
+                  setPendingAction(null);
+                  window.history.pushState({}, '', window.location.pathname);
+                }}
+                className="flex-1 px-4 py-3 border border-gray-200 rounded-xl font-medium text-gray-600 hover:bg-gray-50 transition-colors"
+              >
+                Annuler
+              </button>
+              <button
+                onClick={() => {
+                  if (pendingAction) {
+                    pendingAction();
+                  }
+                  setShowLogoutWarning(null);
+                  setPendingAction(null);
+                }}
+                className="flex-1 px-4 py-3 bg-amber-600 text-white rounded-xl font-medium hover:bg-amber-700 transition-colors"
+              >
+                Se déconnecter et continuer
+              </button>
             </div>
           </div>
         </div>

@@ -1,15 +1,25 @@
 import React, { useState } from 'react';
 import { useApp } from '../context/AppContext';
-import { ChevronLeft, ChevronRight, Clock, CheckCircle, XCircle, Trash2, Archive, Eye } from 'lucide-react';
-import { format, startOfMonth, endOfMonth, eachDayOfInterval, isSameMonth, isSameDay, addMonths, subMonths, isToday } from 'date-fns';
+import { ChevronLeft, ChevronRight, Clock, CheckCircle, XCircle, Trash2, Archive, Edit2, Save } from 'lucide-react';
+import { format, startOfMonth, endOfMonth, eachDayOfInterval, isSameDay, addMonths, subMonths, isToday } from 'date-fns';
 import { fr } from 'date-fns/locale';
 
 export default function CalendarPage() {
-  const { appointments, students, getStudentById, confirmAppointment, cancelAppointment, deleteAppointment, archiveAppointment, completeAppointment } = useApp();
+  const { appointments, students, getStudentById, confirmAppointment, cancelAppointment, deleteAppointment, archiveAppointment, completeAppointment, updateAppointment } = useApp();
   const [currentMonth, setCurrentMonth] = useState(new Date());
   const [selectedDay, setSelectedDay] = useState<Date | null>(null);
   const [selectedAppointment, setSelectedAppointment] = useState<string | null>(null);
   const [showModal, setShowModal] = useState(false);
+  const [editMode, setEditMode] = useState(false);
+  const [editForm, setEditForm] = useState({
+    date: '',
+    time: '',
+    duration: 60,
+    subject: '',
+    status: 'pending' as 'pending' | 'confirmed' | 'cancelled' | 'completed',
+    notes: '',
+    price: 45,
+  });
 
   const monthStart = startOfMonth(currentMonth);
   const monthEnd = endOfMonth(currentMonth);
@@ -43,6 +53,34 @@ export default function CalendarPage() {
 
   const handleMarkCompleted = (id: string) => {
     completeAppointment(id);
+  };
+
+  const handleEdit = (id: string) => {
+    const apt = appointments.find(a => a.id === id);
+    if (apt) {
+      setEditForm({
+        date: apt.date,
+        time: apt.time,
+        duration: apt.duration,
+        subject: apt.subject,
+        status: apt.status,
+        notes: apt.notes,
+        price: apt.price,
+      });
+      setEditMode(true);
+    }
+  };
+
+  const handleSaveEdit = () => {
+    if (selectedAppointment) {
+      updateAppointment(selectedAppointment, editForm);
+      setEditMode(false);
+      setShowModal(false);
+    }
+  };
+
+  const handleStatusChange = (id: string, newStatus: 'pending' | 'confirmed' | 'cancelled' | 'completed') => {
+    updateAppointment(id, { status: newStatus });
   };
 
   const getStatusColor = (status: string) => {
@@ -182,7 +220,7 @@ export default function CalendarPage() {
                       return (
                         <div
                           key={apt.id}
-                          onClick={() => { setSelectedAppointment(apt.id); setShowModal(true); }}
+                          onClick={() => { setSelectedAppointment(apt.id); setShowModal(true); setEditMode(false); }}
                           className="p-4 rounded-xl border border-gray-100 hover:border-indigo-200 hover:shadow-sm cursor-pointer transition-all"
                         >
                           <div className="flex items-start justify-between mb-2">
@@ -224,88 +262,184 @@ export default function CalendarPage() {
         const student = getStudentById(apt.studentId);
 
         return (
-          <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4" onClick={() => setShowModal(false)}>
-            <div className="bg-white rounded-2xl shadow-2xl max-w-md w-full p-6" onClick={e => e.stopPropagation()}>
-              <h3 className="text-xl font-bold text-gray-900 mb-4">Détails du rendez-vous</h3>
+          <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4" onClick={() => { setShowModal(false); setEditMode(false); }}>
+            <div className="bg-white rounded-2xl shadow-2xl max-w-lg w-full p-6 max-h-[90vh] overflow-y-auto" onClick={e => e.stopPropagation()}>
+              <div className="flex items-center justify-between mb-4">
+                <h3 className="text-xl font-bold text-gray-900">
+                  {editMode ? 'Modifier le rendez-vous' : 'Détails du rendez-vous'}
+                </h3>
+                {!editMode && (
+                  <button
+                    onClick={() => handleEdit(apt.id)}
+                    className="flex items-center gap-2 px-3 py-2 bg-indigo-600 text-white rounded-lg font-medium text-sm hover:bg-indigo-700 transition-colors"
+                  >
+                    <Edit2 className="w-4 h-4" /> Modifier
+                  </button>
+                )}
+              </div>
 
-              <div className="space-y-3 mb-6">
-                <div className="flex justify-between">
-                  <span className="text-gray-500">Élève</span>
-                  <span className="font-medium">{student ? `${student.firstName} ${student.lastName}` : '—'}</span>
-                </div>
-                <div className="flex justify-between">
-                  <span className="text-gray-500">Date</span>
-                  <span className="font-medium">{format(new Date(apt.date + 'T00:00:00'), 'dd MMMM yyyy', { locale: fr })}</span>
-                </div>
-                <div className="flex justify-between">
-                  <span className="text-gray-500">Heure</span>
-                  <span className="font-medium">{apt.time} ({apt.duration}min)</span>
-                </div>
-                <div className="flex justify-between">
-                  <span className="text-gray-500">Sujet</span>
-                  <span className="font-medium">{apt.subject}</span>
-                </div>
-                <div className="flex justify-between">
-                  <span className="text-gray-500">Statut</span>
-                  <span className={`text-xs font-medium px-2 py-1 rounded-full ${
-                    apt.status === 'confirmed' ? 'bg-green-100 text-green-700' :
-                    apt.status === 'pending' ? 'bg-amber-100 text-amber-700' :
-                    apt.status === 'cancelled' ? 'bg-red-100 text-red-700' :
-                    'bg-blue-100 text-blue-700'
-                  }`}>
-                    {getStatusLabel(apt.status)}
-                  </span>
-                </div>
-                <div className="flex justify-between">
-                  <span className="text-gray-500">Prix</span>
-                  <span className="font-medium">{apt.price}€ {apt.paid ? '(Payé)' : '(Non payé)'}</span>
-                </div>
-                {apt.notes && (
-                  <div className="pt-2 border-t border-gray-100">
-                    <span className="text-gray-500 text-sm">Notes:</span>
-                    <p className="text-sm text-gray-700 mt-1">{apt.notes}</p>
+              {!editMode ? (
+                <>
+                  <div className="space-y-3 mb-6">
+                    <div className="flex justify-between">
+                      <span className="text-gray-500">Élève</span>
+                      <span className="font-medium">{student ? `${student.firstName} ${student.lastName}` : '—'}</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="text-gray-500">Date</span>
+                      <span className="font-medium">{format(new Date(apt.date + 'T00:00:00'), 'dd MMMM yyyy', { locale: fr })}</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="text-gray-500">Heure</span>
+                      <span className="font-medium">{apt.time} ({apt.duration}min)</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="text-gray-500">Sujet</span>
+                      <span className="font-medium">{apt.subject}</span>
+                    </div>
+                    <div className="flex justify-between items-center">
+                      <span className="text-gray-500">Statut</span>
+                      <select
+                        value={apt.status}
+                        onChange={(e) => handleStatusChange(apt.id, e.target.value as any)}
+                        className={`text-xs font-medium px-3 py-1.5 rounded-full border-0 cursor-pointer ${
+                          apt.status === 'confirmed' ? 'bg-green-100 text-green-700' :
+                          apt.status === 'pending' ? 'bg-amber-100 text-amber-700' :
+                          apt.status === 'cancelled' ? 'bg-red-100 text-red-700' :
+                          'bg-blue-100 text-blue-700'
+                        }`}
+                      >
+                        <option value="pending">En attente</option>
+                        <option value="confirmed">Confirmé</option>
+                        <option value="completed">Terminé</option>
+                        <option value="cancelled">Annulé</option>
+                      </select>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="text-gray-500">Prix</span>
+                      <span className="font-medium">{apt.price}€ {apt.paid ? '(Payé)' : '(Non payé)'}</span>
+                    </div>
+                    {apt.notes && (
+                      <div className="pt-2 border-t border-gray-100">
+                        <span className="text-gray-500 text-sm">Notes:</span>
+                        <p className="text-sm text-gray-700 mt-1">{apt.notes}</p>
+                      </div>
+                    )}
                   </div>
-                )}
-              </div>
 
-              <div className="grid grid-cols-2 gap-2">
-                {apt.status === 'pending' && (
-                  <button
-                    onClick={() => { handleConfirm(apt.id); setShowModal(false); }}
-                    className="flex items-center justify-center gap-2 px-4 py-2 bg-green-600 text-white rounded-xl font-medium hover:bg-green-700 transition-colors text-sm"
-                  >
-                    <CheckCircle className="w-4 h-4" /> Confirmer
-                  </button>
-                )}
-                {apt.status !== 'cancelled' && apt.status !== 'completed' && (
-                  <button
-                    onClick={() => { handleCancel(apt.id); setShowModal(false); }}
-                    className="flex items-center justify-center gap-2 px-4 py-2 bg-amber-600 text-white rounded-xl font-medium hover:bg-amber-700 transition-colors text-sm"
-                  >
-                    <XCircle className="w-4 h-4" /> Annuler
-                  </button>
-                )}
-                {apt.status === 'confirmed' && (
-                  <button
-                    onClick={() => { handleMarkCompleted(apt.id); setShowModal(false); }}
-                    className="flex items-center justify-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-xl font-medium hover:bg-blue-700 transition-colors text-sm"
-                  >
-                    <CheckCircle className="w-4 h-4" /> Terminer
-                  </button>
-                )}
-                <button
-                  onClick={() => { handleArchive(apt.id); }}
-                  className="flex items-center justify-center gap-2 px-4 py-2 bg-gray-600 text-white rounded-xl font-medium hover:bg-gray-700 transition-colors text-sm"
-                >
-                  <Archive className="w-4 h-4" /> Archiver
-                </button>
-                <button
-                  onClick={() => { handleDelete(apt.id); setShowModal(false); }}
-                  className="flex items-center justify-center gap-2 px-4 py-2 bg-red-600 text-white rounded-xl font-medium hover:bg-red-700 transition-colors text-sm"
-                >
-                  <Trash2 className="w-4 h-4" /> Supprimer
-                </button>
-              </div>
+                  <div className="grid grid-cols-2 gap-2">
+                    <button
+                      onClick={() => { handleArchive(apt.id); setShowModal(false); }}
+                      className="flex items-center justify-center gap-2 px-4 py-2 bg-gray-600 text-white rounded-xl font-medium hover:bg-gray-700 transition-colors text-sm"
+                    >
+                      <Archive className="w-4 h-4" /> Archiver
+                    </button>
+                    <button
+                      onClick={() => { handleDelete(apt.id); setShowModal(false); }}
+                      className="flex items-center justify-center gap-2 px-4 py-2 bg-red-600 text-white rounded-xl font-medium hover:bg-red-700 transition-colors text-sm"
+                    >
+                      <Trash2 className="w-4 h-4" /> Supprimer
+                    </button>
+                  </div>
+                </>
+              ) : (
+                <>
+                  <div className="space-y-4 mb-6">
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">Date</label>
+                      <input
+                        type="date"
+                        value={editForm.date}
+                        onChange={e => setEditForm({ ...editForm, date: e.target.value })}
+                        className="w-full px-3 py-2 rounded-lg border border-gray-200 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-200 outline-none text-sm"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">Heure</label>
+                      <select
+                        value={editForm.time}
+                        onChange={e => setEditForm({ ...editForm, time: e.target.value })}
+                        className="w-full px-3 py-2 rounded-lg border border-gray-200 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-200 outline-none text-sm"
+                      >
+                        {['08:00', '09:00', '10:00', '11:00', '14:00', '15:00', '16:00', '17:00', '18:00', '19:00'].map(time => (
+                          <option key={time} value={time}>{time}</option>
+                        ))}
+                      </select>
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">Durée (minutes)</label>
+                      <select
+                        value={editForm.duration}
+                        onChange={e => {
+                          const duration = parseInt(e.target.value);
+                          const price = duration === 60 ? 45 : duration === 90 ? 65 : 85;
+                          setEditForm({ ...editForm, duration, price });
+                        }}
+                        className="w-full px-3 py-2 rounded-lg border border-gray-200 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-200 outline-none text-sm"
+                      >
+                        <option value={60}>60 min (45€)</option>
+                        <option value={90}>90 min (65€)</option>
+                        <option value={120}>120 min (85€)</option>
+                      </select>
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">Sujet</label>
+                      <input
+                        type="text"
+                        value={editForm.subject}
+                        onChange={e => setEditForm({ ...editForm, subject: e.target.value })}
+                        className="w-full px-3 py-2 rounded-lg border border-gray-200 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-200 outline-none text-sm"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">Statut</label>
+                      <select
+                        value={editForm.status}
+                        onChange={e => setEditForm({ ...editForm, status: e.target.value as any })}
+                        className="w-full px-3 py-2 rounded-lg border border-gray-200 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-200 outline-none text-sm"
+                      >
+                        <option value="pending">En attente</option>
+                        <option value="confirmed">Confirmé</option>
+                        <option value="completed">Terminé</option>
+                        <option value="cancelled">Annulé</option>
+                      </select>
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">Prix (€)</label>
+                      <input
+                        type="number"
+                        value={editForm.price}
+                        onChange={e => setEditForm({ ...editForm, price: parseFloat(e.target.value) || 0 })}
+                        className="w-full px-3 py-2 rounded-lg border border-gray-200 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-200 outline-none text-sm"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">Notes</label>
+                      <textarea
+                        value={editForm.notes}
+                        onChange={e => setEditForm({ ...editForm, notes: e.target.value })}
+                        rows={3}
+                        className="w-full px-3 py-2 rounded-lg border border-gray-200 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-200 outline-none text-sm resize-none"
+                      />
+                    </div>
+                  </div>
+
+                  <div className="grid grid-cols-2 gap-2">
+                    <button
+                      onClick={() => setEditMode(false)}
+                      className="px-4 py-2 border border-gray-200 rounded-xl font-medium text-gray-600 hover:bg-gray-50 transition-colors text-sm"
+                    >
+                      Annuler
+                    </button>
+                    <button
+                      onClick={handleSaveEdit}
+                      className="flex items-center justify-center gap-2 px-4 py-2 bg-indigo-600 text-white rounded-xl font-medium hover:bg-indigo-700 transition-colors text-sm"
+                    >
+                      <Save className="w-4 h-4" /> Enregistrer
+                    </button>
+                  </div>
+                </>
+              )}
             </div>
           </div>
         );

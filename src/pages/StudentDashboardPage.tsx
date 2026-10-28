@@ -50,9 +50,9 @@ export default function StudentDashboardPage() {
   const getAvailableDates = () => {
     const dates = [];
     const today = new Date();
-    for (let i = 1; i <= 14; i++) {
+    for (let i = 1; i <= 90; i++) { // 3 mois au lieu de 14 jours
       const date = addDays(today, i);
-      if (date.getDay() !== 0) dates.push(date);
+      if (date.getDay() !== 0) dates.push(date); // Exclure les dimanches
     }
     return dates;
   };

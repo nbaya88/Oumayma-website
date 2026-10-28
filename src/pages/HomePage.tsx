@@ -25,9 +25,9 @@ export default function HomePage() {
   const getAvailableDates = () => {
     const dates = [];
     const today = new Date();
-    for (let i = 1; i <= 14; i++) {
+    for (let i = 1; i <= 90; i++) { // 3 mois au lieu de 14 jours
       const date = addDays(today, i);
-      if (date.getDay() !== 0) dates.push(date);
+      if (date.getDay() !== 0) dates.push(date); // Exclure les dimanches
     }
     return dates;
   };
@@ -254,20 +254,25 @@ export default function HomePage() {
     <div className="min-h-screen theme-bg-primary theme-text-primary overflow-hidden">
       {/* Animated Background */}
       <div className="fixed inset-0 overflow-hidden pointer-events-none">
-        <div className="absolute top-20 left-[10%] text-7xl font-bold text-indigo-500/10 animate-pulse">∑</div>
-        <div className="absolute top-40 right-[15%] text-6xl font-bold text-purple-500/10 animate-pulse" style={{ animationDelay: '0.5s' }}>∫</div>
-        <div className="absolute top-[60%] left-[5%] text-8xl font-bold text-blue-500/10 animate-pulse" style={{ animationDelay: '1s' }}>π</div>
-        <div className="absolute top-[30%] right-[8%] text-5xl font-bold text-cyan-500/10 animate-pulse" style={{ animationDelay: '1.5s' }}>Δ</div>
-        <div className="absolute bottom-[20%] right-[20%] text-6xl font-bold text-indigo-500/10 animate-pulse" style={{ animationDelay: '2s' }}>∞</div>
-        <div className="absolute bottom-[40%] left-[20%] text-5xl font-bold text-purple-500/10 animate-pulse" style={{ animationDelay: '0.8s' }}>√</div>
-        <div className="absolute top-[50%] left-[50%] text-4xl font-bold text-blue-500/10 animate-pulse" style={{ animationDelay: '1.2s' }}>θ</div>
-        <div className="absolute top-[15%] left-[40%] text-5xl font-bold text-cyan-500/10 animate-pulse" style={{ animationDelay: '0.3s' }}>φ</div>
-        <div className="absolute inset-0 opacity-[0.03]" style={{
+        {/* Symboles mathématiques - plus visibles en mode light */}
+        <div className={`absolute top-20 left-[10%] text-7xl font-bold animate-pulse ${theme === 'dark' ? 'text-indigo-500/10' : 'text-indigo-500/25'}`}>∑</div>
+        <div className={`absolute top-40 right-[15%] text-6xl font-bold animate-pulse ${theme === 'dark' ? 'text-purple-500/10' : 'text-purple-500/25'}`} style={{ animationDelay: '0.5s' }}>∫</div>
+        <div className={`absolute top-[60%] left-[5%] text-8xl font-bold animate-pulse ${theme === 'dark' ? 'text-blue-500/10' : 'text-blue-500/25'}`} style={{ animationDelay: '1s' }}>π</div>
+        <div className={`absolute top-[30%] right-[8%] text-5xl font-bold animate-pulse ${theme === 'dark' ? 'text-cyan-500/10' : 'text-cyan-500/25'}`} style={{ animationDelay: '1.5s' }}>Δ</div>
+        <div className={`absolute bottom-[20%] right-[20%] text-6xl font-bold animate-pulse ${theme === 'dark' ? 'text-indigo-500/10' : 'text-indigo-500/25'}`} style={{ animationDelay: '2s' }}>∞</div>
+        <div className={`absolute bottom-[40%] left-[20%] text-5xl font-bold animate-pulse ${theme === 'dark' ? 'text-purple-500/10' : 'text-purple-500/25'}`} style={{ animationDelay: '0.8s' }}>√</div>
+        <div className={`absolute top-[50%] left-[50%] text-4xl font-bold animate-pulse ${theme === 'dark' ? 'text-blue-500/10' : 'text-blue-500/25'}`} style={{ animationDelay: '1.2s' }}>θ</div>
+        <div className={`absolute top-[15%] left-[40%] text-5xl font-bold animate-pulse ${theme === 'dark' ? 'text-cyan-500/10' : 'text-cyan-500/25'}`} style={{ animationDelay: '0.3s' }}>φ</div>
+
+        {/* Grille - plus visible en mode light */}
+        <div className={`absolute inset-0 ${theme === 'dark' ? 'opacity-[0.03]' : 'opacity-[0.08]'}`} style={{
           backgroundImage: 'linear-gradient(rgba(99,102,241,0.5) 1px, transparent 1px), linear-gradient(90deg, rgba(99,102,241,0.5) 1px, transparent 1px)',
           backgroundSize: '60px 60px'
         }}></div>
-        <div className="absolute top-0 right-0 w-[500px] h-[500px] bg-indigo-600/20 rounded-full blur-[120px]"></div>
-        <div className="absolute bottom-0 left-0 w-[400px] h-[400px] bg-purple-600/20 rounded-full blur-[120px]"></div>
+
+        {/* Orbes de lumière - plus visibles en mode light */}
+        <div className={`absolute top-0 right-0 w-[500px] h-[500px] rounded-full blur-[120px] ${theme === 'dark' ? 'bg-indigo-600/20' : 'bg-indigo-400/30'}`}></div>
+        <div className={`absolute bottom-0 left-0 w-[400px] h-[400px] rounded-full blur-[120px] ${theme === 'dark' ? 'bg-purple-600/20' : 'bg-purple-400/30'}`}></div>
       </div>
 
       {/* Navigation */}
@@ -417,9 +422,9 @@ export default function HomePage() {
             <div key={idx} className={`group rounded-2xl p-5 transition-all hover:-translate-y-1 ${
               theme === 'dark'
                 ? 'bg-slate-900/50 backdrop-blur border border-gray-800 hover:border-indigo-500/50'
-                : 'bg-white border border-gray-200 hover:border-indigo-300 shadow-sm hover:shadow-md'
+                : 'bg-white border-2 border-gray-300 hover:border-indigo-400 shadow-md hover:shadow-xl'
             }`}>
-              <div className={`w-12 h-12 bg-gradient-to-br ${item.color} rounded-xl flex items-center justify-center text-white mb-3 group-hover:scale-110 transition-transform`}>
+              <div className={`w-12 h-12 bg-gradient-to-br ${item.color} rounded-xl flex items-center justify-center text-white mb-3 group-hover:scale-110 transition-transform shadow-lg`}>
                 {item.icon}
               </div>
               <h3 className="font-bold theme-text-primary mb-1">{item.title}</h3>
@@ -762,8 +767,8 @@ export default function HomePage() {
             ].map(t => (
               <div key={t.duration} className={`p-6 rounded-2xl border-2 ${
                 t.popular
-                  ? 'border-indigo-500 bg-indigo-500/10'
-                  : theme === 'dark' ? 'border-gray-800 bg-slate-900/50' : 'border-gray-200 bg-white'
+                  ? 'border-indigo-500 bg-indigo-500/10 shadow-lg'
+                  : theme === 'dark' ? 'border-gray-800 bg-slate-900/50' : 'border-gray-300 bg-white shadow-md'
               }`}>
                 {t.popular && <span className="text-xs font-bold text-indigo-300 bg-indigo-500/20 px-3 py-1 rounded-full">Populaire</span>}
                 <div className="text-3xl font-bold theme-text-primary mt-2">{t.price}</div>
