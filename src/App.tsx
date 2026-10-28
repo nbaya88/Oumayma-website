@@ -70,9 +70,11 @@ function AppContent() {
       } else if (hash === '#student-profile' && currentStudentId) {
         setCurrentPage('student-profile');
       } else if (hash === '' || hash === '#' || hash === '#home') {
-        // Retour à l'accueil
-        setCurrentPage('home');
-        setShowResetPage(false);
+        // Retour à l'accueil seulement si on n'est pas déjà connecté
+        if (!isAdmin && !currentStudentId) {
+          setCurrentPage('home');
+          setShowResetPage(false);
+        }
       }
     };
     handleHashChange();
@@ -98,7 +100,7 @@ function AppContent() {
       setCurrentPage('dashboard');
       setShowLoginModal(false);
       setPassword('');
-      window.location.hash = '';
+      // Ne pas changer le hash ici pour éviter le conflit avec le useEffect
     } else {
       alert('Mot de passe incorrect');
     }
@@ -231,7 +233,11 @@ function AppContent() {
                 Se connecter
               </button>
               <button
-                onClick={() => { setShowLoginModal(false); setPassword(''); window.location.hash = ''; }}
+                onClick={() => {
+                  setShowLoginModal(false);
+                  setPassword('');
+                  setCurrentPage('home');
+                }}
                 className="w-full text-gray-500 text-sm hover:text-gray-700 transition-colors"
               >
                 Annuler
