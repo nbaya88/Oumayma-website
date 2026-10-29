@@ -642,34 +642,6 @@ export function AppProvider({ children }: { children: ReactNode }) {
     }));
   };
 
-const updateStudent = (id: string, data: Partial<Student>) => {
-  setState(prev => ({
-    ...prev,
-    students: prev.students.map(s => s.id === id ? { ...s, ...data } : s),
-  }));
-};
-
-const updateAppointment = (id: string, data: Partial<Appointment>) => {
-  setState(prev => ({
-    ...prev,
-    appointments: prev.appointments.map(a => a.id === id ? { ...a, ...data } : a),
-  }));
-};
-
-const updateInvoice = (id: string, data: Partial<Invoice>) => {
-  setState(prev => ({
-    ...prev,
-    invoices: prev.invoices.map(i => i.id === id ? { ...i, ...data } : i),
-  }));
-};
-
-const updatePurchaseOrder = (id: string, data: Partial<PurchaseOrder>) => {
-  setState(prev => ({
-    ...prev,
-    purchaseOrders: prev.purchaseOrders.map(p => p.id === id ? { ...p, ...data } : p),
-  }));
-};
-
 const updateCompanyInfo = (data: Partial<CompanyInfo>) => {
   setState(prev => ({
     ...prev,
