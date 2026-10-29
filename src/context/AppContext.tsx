@@ -3,7 +3,6 @@ import { Student, Appointment, Invoice, PurchaseOrder, Document, CompanyInfo, Em
 import { v4 as uuidv4 } from 'uuid';
 import { format } from 'date-fns';
 import { fr } from 'date-fns/locale';
-import { sendWelcomeEmail, sendPurchaseOrderEmail, sendInvoiceEmail, initEmailJS } from '../services/emailService';
 import { saveAllData } from '../services/googleSheetsAPI';
 
 interface AppState {
@@ -443,9 +442,6 @@ export function AppProvider({ children }: { children: ReactNode }) {
       }],
     }));
 
-    // Envoyer l'email via EmailJS si configuré
-    // Note: Les fonctions spécifiques (sendWelcomeEmail, etc.) seront appelées directement
-    // depuis les endroits où elles sont nécessaires pour avoir plus de contrôle
   };
 
   const generatePurchaseOrderForAppointment = (appointmentId: string): string | null => {
