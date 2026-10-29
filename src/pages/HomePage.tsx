@@ -181,9 +181,6 @@ export default function HomePage() {
         });
         isNew = true;
 
-        if (studentInfo.email) {
-          
-          });
 
           // Log the email
           sendEmail(
