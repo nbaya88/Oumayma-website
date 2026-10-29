@@ -52,11 +52,11 @@ interface AppContextType extends AppState {
   addDocument: (doc: Omit<Document, 'id' | 'createdAt'>) => void;
   deleteDocument: (id: string) => void;
   // Company
-  updateCompanyInfo: ( Partial<CompanyInfo>) => void;
+  updateCompanyInfo: (data: Partial<CompanyInfo>) => void;
   // Automation
-  updateAutomationSettings: ( Partial<AutomationSettings>) => void;
+  updateAutomationSettings: (data: Partial<AutomationSettings>) => void;
   // Pricing
-  updatePricingSettings: ( Partial<PricingSettings>) => void;
+  updatePricingSettings: (data: Partial<PricingSettings>) => void;
   // Theme
   setTheme: (theme: Theme) => void;
   toggleTheme: () => void;
