@@ -36,7 +36,7 @@ interface AppContextType extends AppState {
   generatePassword: () => string;
   // Appointment
   addAppointment: (appointment: Omit<Appointment, 'id' | 'createdAt' | 'archived'>) => void;
-  updateAppointment: (id: string,  Partial<Appointment>) => void;
+  updateAppointment: (id: string, appointment: Partial<Appointment>) => void;
   deleteAppointment: (id: string) => void;
   archiveAppointment: (id: string) => void;
   confirmAppointment: (id: string) => void;
@@ -44,12 +44,11 @@ interface AppContextType extends AppState {
   completeAppointment: (id: string) => void;
   // Invoice
   addInvoice: (invoice: Omit<Invoice, 'id' | 'createdAt'>) => void;
-  updateInvoice: (id: string,  Partial<Invoice>) => void;
+  updateInvoice: (id: string, invoice: Partial<Invoice>) => void;
   deleteInvoice: (id: string) => void;
   // Purchase Order
   addPurchaseOrder: (po: Omit<PurchaseOrder, 'id' | 'createdAt'>) => void;
-  updatePurchaseOrder: (id: string,  Partial<PurchaseOrder>) => void;
-  // Document
+  updatePurchaseOrder: (id: string, purchaseOrder: Partial<PurchaseOrder>) => void;
   addDocument: (doc: Omit<Document, 'id' | 'createdAt'>) => void;
   deleteDocument: (id: string) => void;
   // Company
@@ -643,27 +642,54 @@ export function AppProvider({ children }: { children: ReactNode }) {
     }));
   };
 
-  const updateCompanyInfo = ( Partial<CompanyInfo>) => {
-    setState(prev => ({
-      ...prev,
-      companyInfo: { ...prev.companyInfo, ...data },
-    }));
-  };
+const updateStudent = (id: string, data: Partial<Student>) => {
+  setState(prev => ({
+    ...prev,
+    students: prev.students.map(s => s.id === id ? { ...s, ...data } : s),
+  }));
+};
 
-  const updateAutomationSettings = ( Partial<AutomationSettings>) => {
-    setState(prev => ({
-      ...prev,
-      automationSettings: { ...prev.automationSettings, ...data },
-    }));
-  };
+const updateAppointment = (id: string, data: Partial<Appointment>) => {
+  setState(prev => ({
+    ...prev,
+    appointments: prev.appointments.map(a => a.id === id ? { ...a, ...data } : a),
+  }));
+};
 
-  const updatePricingSettings = ( Partial<PricingSettings>) => {
-    setState(prev => ({
-      ...prev,
-      pricingSettings: { ...prev.pricingSettings, ...data },
-    }));
-  };
+const updateInvoice = (id: string, data: Partial<Invoice>) => {
+  setState(prev => ({
+    ...prev,
+    invoices: prev.invoices.map(i => i.id === id ? { ...i, ...data } : i),
+  }));
+};
 
+const updatePurchaseOrder = (id: string, data: Partial<PurchaseOrder>) => {
+  setState(prev => ({
+    ...prev,
+    purchaseOrders: prev.purchaseOrders.map(p => p.id === id ? { ...p, ...data } : p),
+  }));
+};
+
+const updateCompanyInfo = (data: Partial<CompanyInfo>) => {
+  setState(prev => ({
+    ...prev,
+    companyInfo: { ...prev.companyInfo, ...data },
+  }));
+};
+
+const updateAutomationSettings = (data: Partial<AutomationSettings>) => {
+  setState(prev => ({
+    ...prev,
+    automationSettings: { ...prev.automationSettings, ...data },
+  }));
+};
+
+const updatePricingSettings = (data: Partial<PricingSettings>) => {
+  setState(prev => ({
+    ...prev,
+    pricingSettings: { ...prev.pricingSettings, ...data },
+  }));
+};
   const setIsAdmin = (val: boolean) => {
     setState(prev => {
       const newState = { ...prev, isAdmin: val };
