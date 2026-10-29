@@ -12,71 +12,18 @@ import StudentLoginPage from './pages/StudentLoginPage';
 import StudentDashboardPage from './pages/StudentDashboardPage';
 import StudentProfilePage from './pages/StudentProfilePage';
 import AdminLayout from './components/AdminLayout';
-
-// Composant pour gérer la redirection après connexion
-function AuthenticatedRoute({ children, requireAdmin = false, requireStudent = false }: {
-  children: React.ReactNode;
-  requireAdmin?: boolean;
-  requireStudent?: boolean;
-}) {
-  const { isAdmin, currentStudentId } = useApp();
-  const location = useLocation();
-
-  if (requireAdmin && !isAdmin) {
-    return <Navigate to="/login" state={{ from: location }} replace />;
-  }
-
-  if (requireStudent && !currentStudentId) {
-    return <Navigate to="/student-login" state={{ from: location }} replace />;
-  }
-
-  return <>{children}</>;
-}
-
-// Layout pour l'espace professeur
-function AdminApp() {
-  const location = useLocation();
-  const navigate = useNavigate();
-
-  const getCurrentPage = () => {
-    const path = location.pathname;
-    if (path === '/dashboard') return 'dashboard';
-    if (path === '/calendar') return 'calendar';
-    if (path === '/students') return 'students';
-    if (path === '/invoices') return 'invoices';
-    if (path === '/archives') return 'archives';
-    if (path === '/settings') return 'settings';
-    return 'dashboard';
-  };
-
-  return (
-    <AdminLayout currentPage={getCurrentPage()} onPageChange={(page) => navigate(`/${page}`)}>
-      <Routes>
-        <Route path="/dashboard" element={<DashboardPage />} />
-        <Route path="/calendar" element={<CalendarPage />} />
-        <Route path="/students" element={<StudentsPage />} />
-        <Route path="/invoices" element={<InvoicesPage />} />
-        <Route path="/archives" element={<ArchivesPage />} />
-        <Route path="/settings" element={<SettingsPage />} />
-        <Route path="*" element={<Navigate to="/dashboard" replace />} />
-      </Routes>
-    </AdminLayout>
-  );
-}
+import { Page } from './types';
 
 // Page de connexion professeur
 function LoginPage() {
   const [password, setPassword] = useState('');
   const { setIsAdmin } = useApp();
   const navigate = useNavigate();
-  const location = useLocation();
-
-  const from = (location.state as any)?.from?.pathname || '/dashboard';
 
   const handleLogin = () => {
     if (password === 'prof2026' || password === 'admin') {
       setIsAdmin(true);
-      navigate(from, { replace: true });
+      navigate('/dashboard', { replace: true });
     } else {
       alert('Mot de passe incorrect');
     }
@@ -121,7 +68,7 @@ function LoginPage() {
           </p>
           <button
             onClick={() => {
-              if (confirm('Réinitialiser toutes les données ? Cette action est irréversible.')) {
+              if (confirm('Réinitialiser toutes les données ?')) {
                 localStorage.clear();
                 window.location.reload();
               }
@@ -157,16 +104,15 @@ function ResetPage() {
           <button
             onClick={() => {
               localStorage.clear();
-              window.location.hash = '';
+              window.location.hash = '#/';
               window.location.reload();
             }}
             className="w-full bg-red-600 text-white py-3 rounded-xl font-semibold hover:bg-red-700 transition-all"
           >
             🗑️ Réinitialiser toutes les données
           </button>
-
           <button
-            onClick={() => window.location.hash = ''}
+            onClick={() => window.location.hash = '#/'}
             className="w-full bg-gray-200 text-gray-700 py-3 rounded-xl font-semibold hover:bg-gray-300 transition-all"
           >
             ← Retour à l'accueil
@@ -185,6 +131,76 @@ function ResetPage() {
       </div>
     </div>
   );
+}
+
+// Composant Espace Professeur - gère la navigation interne via currentPage
+function AdminSpace() {
+  const location = useLocation();
+  const navigate = useNavigate();
+  const { isAdmin } = useApp();
+
+  // Déterminer la page actuelle basée sur l'URL
+  const getPageFromPath = (): Page => {
+    const path = location.pathname;
+    if (path === '/calendar') return 'calendar';
+    if (path === '/students') return 'students';
+    if (path === '/invoices') return 'invoices';
+    if (path === '/archives') return 'archives';
+    if (path === '/settings') return 'settings';
+    return 'dashboard';
+  };
+
+  const [currentPage, setCurrentPage] = useState<Page>(getPageFromPath());
+
+  // Mettre à jour la page quand l'URL change
+  useEffect(() => {
+    setCurrentPage(getPageFromPath());
+  }, [location.pathname]);
+
+  // Si pas admin, rediriger vers login
+  if (!isAdmin) {
+    return <Navigate to="/login" replace />;
+  }
+
+  const handlePageChange = (page: Page) => {
+    setCurrentPage(page);
+    navigate(`/${page === 'dashboard' ? 'dashboard' : page}`);
+  };
+
+  const renderPage = () => {
+    switch (currentPage) {
+      case 'dashboard': return <DashboardPage />;
+      case 'calendar': return <CalendarPage />;
+      case 'students': return <StudentsPage />;
+      case 'invoices': return <InvoicesPage />;
+      case 'archives': return <ArchivesPage />;
+      case 'settings': return <SettingsPage />;
+      default: return <DashboardPage />;
+    }
+  };
+
+  return (
+    <AdminLayout currentPage={currentPage} onPageChange={handlePageChange}>
+      {renderPage()}
+    </AdminLayout>
+  );
+}
+
+// Composant Espace Élève
+function StudentSpace() {
+  const location = useLocation();
+  const { currentStudentId } = useApp();
+
+  // Si pas connecté, rediriger vers login
+  if (!currentStudentId) {
+    return <Navigate to="/student-login" replace />;
+  }
+
+  const path = location.pathname;
+  if (path === '/student-profile') {
+    return <StudentProfilePage />;
+  }
+  return <StudentDashboardPage />;
 }
 
 // Composant principal de l'application
@@ -206,51 +222,17 @@ function AppContent() {
         currentStudentId ? <Navigate to="/student-dashboard" replace /> : <StudentLoginPage />
       } />
 
-      {/* Dashboard élève - protégé */}
-      <Route path="/student-dashboard" element={
-        <AuthenticatedRoute requireStudent={true}>
-          <StudentDashboardPage />
-        </AuthenticatedRoute>
-      } />
+      {/* Espace professeur - toutes les routes admin */}
+      <Route path="/dashboard" element={<AdminSpace />} />
+      <Route path="/calendar" element={<AdminSpace />} />
+      <Route path="/students" element={<AdminSpace />} />
+      <Route path="/invoices" element={<AdminSpace />} />
+      <Route path="/archives" element={<AdminSpace />} />
+      <Route path="/settings" element={<AdminSpace />} />
 
-      {/* Profil élève - protégé */}
-      <Route path="/student-profile" element={
-        <AuthenticatedRoute requireStudent={true}>
-          <StudentProfilePage />
-        </AuthenticatedRoute>
-      } />
-
-      {/* Espace professeur - protégé */}
-      <Route path="/dashboard" element={
-        <AuthenticatedRoute requireAdmin={true}>
-          <AdminApp />
-        </AuthenticatedRoute>
-      } />
-      <Route path="/calendar" element={
-        <AuthenticatedRoute requireAdmin={true}>
-          <AdminApp />
-        </AuthenticatedRoute>
-      } />
-      <Route path="/students" element={
-        <AuthenticatedRoute requireAdmin={true}>
-          <AdminApp />
-        </AuthenticatedRoute>
-      } />
-      <Route path="/invoices" element={
-        <AuthenticatedRoute requireAdmin={true}>
-          <AdminApp />
-        </AuthenticatedRoute>
-      } />
-      <Route path="/archives" element={
-        <AuthenticatedRoute requireAdmin={true}>
-          <AdminApp />
-        </AuthenticatedRoute>
-      } />
-      <Route path="/settings" element={
-        <AuthenticatedRoute requireAdmin={true}>
-          <AdminApp />
-        </AuthenticatedRoute>
-      } />
+      {/* Espace élève */}
+      <Route path="/student-dashboard" element={<StudentSpace />} />
+      <Route path="/student-profile" element={<StudentSpace />} />
 
       {/* Page de réinitialisation */}
       <Route path="/reset" element={<ResetPage />} />
