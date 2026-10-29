@@ -24,7 +24,7 @@ interface AppState {
 interface AppContextType extends AppState {
   // Student
   addStudent: (student: Omit<Student, 'id' | 'createdAt' | 'archived'>) => void;
-  updateStudent: (id: string,  Partial<Student>) => void;
+  updateStudent: (id: string, student: Partial<Student>) => void;
   deleteStudent: (id: string) => void;
   archiveStudent: (id: string) => void;
   getStudentById: (id: string) => Student | undefined;
