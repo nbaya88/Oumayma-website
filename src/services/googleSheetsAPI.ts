@@ -463,3 +463,145 @@ L'équipe MS Académie`;
     emailBody
   );
 }
+
+/**
+ * Envoyer un email de bienvenue avec mot de passe
+ */
+export async function sendWelcomeEmailViaGoogle(
+  studentEmail: string,
+  studentName: string,
+  password: string
+): Promise<SyncResult> {
+  const emailBody = `Bonjour ${studentName},
+
+Bienvenue sur MS Académie !
+
+Votre compte a été créé avec succès. Voici vos identifiants de connexion :
+
+🔐 Vos identifiants :
+• Email : ${studentEmail}
+• Mot de passe : ${password}
+
+📚 Accès à votre espace élève :
+• Consulter vos cours à venir
+• Télécharger vos factures et bons de commande
+• Uploader des documents
+• Réserver de nouveaux cours
+
+Pour vous connecter, rendez-vous sur la page d'accueil et cliquez sur "Espace élève".
+
+⚠️ Important : Nous vous recommandons de changer votre mot de passe après votre première connexion.
+
+Cordialement,
+L'équipe MS Académie`;
+
+  return sendEmailViaGoogle(
+    studentEmail,
+    `Bienvenue sur MS Académie - Votre compte a été créé`,
+    emailBody
+  );
+}
+
+/**
+ * Envoyer un email de récupération de mot de passe
+ */
+export async function sendPasswordRecoveryEmail(
+  studentEmail: string,
+  studentName: string,
+  password: string
+): Promise<SyncResult> {
+  const emailBody = `Bonjour ${studentName},
+
+Vous avez demandé la récupération de votre mot de passe MS Académie.
+
+🔐 Votre mot de passe :
+${password}
+
+⚠️ Important :
+• Conservez ce mot de passe en lieu sûr
+• Nous vous recommandons de le changer après votre connexion
+• Ne partagez jamais votre mot de passe
+
+Si vous n'avez pas demandé cette récupération, ignorez cet email.
+
+Cordialement,
+L'équipe MS Académie`;
+
+  return sendEmailViaGoogle(
+    studentEmail,
+    `Récupération de votre mot de passe - MS Académie`,
+    emailBody
+  );
+}
+
+/**
+ * Envoyer un email de bon de commande
+ */
+export async function sendPurchaseOrderEmail(
+  studentEmail: string,
+  studentName: string,
+  poNumber: string,
+  subject: string,
+  date: string,
+  time: string,
+  price: number
+): Promise<SyncResult> {
+  const emailBody = `Bonjour ${studentName},
+
+Votre cours a été confirmé. Voici votre bon de commande :
+
+📋 Bon de commande N° ${poNumber}
+
+📅 Détails du cours :
+• Matière : ${subject}
+• Date : ${date}
+• Heure : ${time}
+• Montant : ${price}€
+
+Merci de conserver ce bon de commande pour vos dossiers.
+
+Cordialement,
+L'équipe MS Académie`;
+
+  return sendEmailViaGoogle(
+    studentEmail,
+    `Votre bon de commande ${poNumber} - MS Académie`,
+    emailBody
+  );
+}
+
+/**
+ * Envoyer un email de facture
+ */
+export async function sendInvoiceEmail(
+  studentEmail: string,
+  studentName: string,
+  invoiceNumber: string,
+  subject: string,
+  date: string,
+  dueDate: string,
+  price: number
+): Promise<SyncResult> {
+  const emailBody = `Bonjour ${studentName},
+
+Votre cours est maintenant terminé. Voici votre facture :
+
+📄 Facture N° ${invoiceNumber}
+
+📅 Détails du cours :
+• Matière : ${subject}
+• Date du cours : ${date}
+• Montant : ${price}€
+• Date d'échéance : ${dueDate}
+
+Merci de régler par virement sur le IBAN indiqué dans la facture.
+
+Cordialement,
+L'équipe MS Académie`;
+
+  return sendEmailViaGoogle(
+    studentEmail,
+    `Votre facture ${invoiceNumber} - MS Académie`,
+    emailBody
+  );
+}

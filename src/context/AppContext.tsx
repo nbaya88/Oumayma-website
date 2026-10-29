@@ -3,7 +3,8 @@ import { Student, Appointment, Invoice, PurchaseOrder, Document, CompanyInfo, Em
 import { v4 as uuidv4 } from 'uuid';
 import { format } from 'date-fns';
 import { fr } from 'date-fns/locale';
-import { saveAllData } from '../services/googleSheetsAPI';
+import { initEmailJS } from '../services/emailService';
+import { saveAllData, sendPurchaseOrderEmail, sendInvoiceEmail } from '../services/googleSheetsAPI';
 
 interface AppState {
   students: Student[];
@@ -23,7 +24,7 @@ interface AppState {
 interface AppContextType extends AppState {
   // Student
   addStudent: (student: Omit<Student, 'id' | 'createdAt' | 'archived'>) => void;
-  updateStudent: (id: string, student: Partial<Student>) => void;
+  updateStudent: (id: string, data: Partial<Student>) => void;
   deleteStudent: (id: string) => void;
   archiveStudent: (id: string) => void;
   getStudentById: (id: string) => Student | undefined;
@@ -35,7 +36,7 @@ interface AppContextType extends AppState {
   generatePassword: () => string;
   // Appointment
   addAppointment: (appointment: Omit<Appointment, 'id' | 'createdAt' | 'archived'>) => void;
-  updateAppointment: (id: string, appointment: Partial<Appointment>) => void;
+  updateAppointment: (id: string, data: Partial<Appointment>) => void;
   deleteAppointment: (id: string) => void;
   archiveAppointment: (id: string) => void;
   confirmAppointment: (id: string) => void;
@@ -43,11 +44,11 @@ interface AppContextType extends AppState {
   completeAppointment: (id: string) => void;
   // Invoice
   addInvoice: (invoice: Omit<Invoice, 'id' | 'createdAt'>) => void;
-  updateInvoice: (id: string, invoice: Partial<Invoice>) => void;
+  updateInvoice: (id: string, data: Partial<Invoice>) => void;
   deleteInvoice: (id: string) => void;
   // Purchase Order
   addPurchaseOrder: (po: Omit<PurchaseOrder, 'id' | 'createdAt'>) => void;
-  updatePurchaseOrder: (id: string,  purchaseorder: Partial<PurchaseOrder>) => void;
+  updatePurchaseOrder: (id: string, data: Partial<PurchaseOrder>) => void;
   // Document
   addDocument: (doc: Omit<Document, 'id' | 'createdAt'>) => void;
   deleteDocument: (id: string) => void;
@@ -443,8 +444,9 @@ export function AppProvider({ children }: { children: ReactNode }) {
       }],
     }));
 
-    // Cette fonction enregistre le message dans l'historique.
-    // L'envoi réel doit être effectué par l'intégration Google Apps Script si elle est configurée.
+    // Envoyer l'email via EmailJS si configuré
+    // Note: Les fonctions spécifiques (sendWelcomeEmail, etc.) seront appelées directement
+    // depuis les endroits où elles sont nécessaires pour avoir plus de contrôle
   };
 
   const generatePurchaseOrderForAppointment = (appointmentId: string): string | null => {
@@ -483,6 +485,16 @@ export function AppProvider({ children }: { children: ReactNode }) {
 
     // Send email to student if enabled
     if (state.automationSettings.autoSendEmails) {
+      sendPurchaseOrderEmail(
+        student.email,
+        student.firstName,
+        poNumber,
+        apt.subject,
+        format(new Date(apt.date + 'T00:00:00'), 'dd MMMM yyyy', { locale: fr }),
+        apt.time,
+        apt.price
+      );
+
       // Log the email
       sendEmail(
         student.email,
@@ -539,6 +551,16 @@ export function AppProvider({ children }: { children: ReactNode }) {
 
     // Send email to student if enabled
     if (state.automationSettings.autoSendEmails) {
+      sendInvoiceEmail(
+        student.email,
+        student.firstName,
+        invoiceNumber,
+        apt.subject,
+        format(new Date(apt.date + 'T00:00:00'), 'dd MMMM yyyy', { locale: fr }),
+        format(dueDate, 'dd/MM/yyyy', { locale: fr }),
+        apt.price
+      );
+
       // Log the email
       sendEmail(
         student.email,

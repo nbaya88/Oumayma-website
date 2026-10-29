@@ -3,7 +3,7 @@ import { useApp } from '../context/AppContext';
 import { Calendar, Clock, BookOpen, CheckCircle, ArrowRight, GraduationCap, Star, Users, Award, TrendingUp, Calculator, Sigma, Pi, FunctionSquare, Atom, FlaskConical, LogIn, UserPlus, Sun, Moon, ChevronLeft, ChevronRight, Quote } from 'lucide-react';
 import { format, addDays } from 'date-fns';
 import { fr } from 'date-fns/locale';
-import { sendBookingConfirmationEmail } from '../services/googleSheetsAPI';
+import { sendBookingConfirmationEmail, sendWelcomeEmailViaGoogle } from '../services/googleSheetsAPI';
 
 export default function HomePage() {
   const { students, appointments, addAppointment, addStudent, theme, toggleTheme, sendEmail, findStudentByEmailOrPhone, pricingSettings } = useApp();
@@ -152,8 +152,8 @@ export default function HomePage() {
         studentId = allStudents[allStudents.length - 1]?.id || '';
         isNew = true;
 
-        // Envoyer l'email avec le mot de passe
-        
+        // Envoyer l'email avec le mot de passe via Google Apps Script
+        sendWelcomeEmailViaGoogle(studentInfo.email, studentInfo.firstName, password);
 
         // Log the email
         sendEmail(
@@ -181,6 +181,9 @@ export default function HomePage() {
         });
         isNew = true;
 
+        if (studentInfo.email) {
+          // Envoyer l'email avec le mot de passe via Google Apps Script
+          sendWelcomeEmailViaGoogle(studentInfo.email, studentInfo.firstName || 'Nouveau', password);
 
           // Log the email
           sendEmail(
@@ -1069,4 +1072,4 @@ export default function HomePage() {
       </footer>
     </div>
   );
-
+}
