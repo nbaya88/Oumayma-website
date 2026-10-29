@@ -47,7 +47,8 @@ interface AppContextType extends AppState {
   deleteInvoice: (id: string) => void;
   // Purchase Order
   addPurchaseOrder: (po: Omit<PurchaseOrder, 'id' | 'createdAt'>) => void;
-  updatePurchaseOrder: (id: string, purchaseOrder: Partial<PurchaseOrder>) => void;
+  updatePurchaseOrder: (id: string,  purchaseorder: Partial<PurchaseOrder>) => void;
+  // Document
   addDocument: (doc: Omit<Document, 'id' | 'createdAt'>) => void;
   deleteDocument: (id: string) => void;
   // Company
@@ -366,7 +367,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
     }));
   };
 
-  const updateStudent = (id: string,  Partial<Student>) => {
+  const updateStudent = (id: string, data: Partial<Student>) => {
     setState(prev => ({
       ...prev,
       students: prev.students.map(s => s.id === id ? { ...s, ...data } : s),
@@ -406,7 +407,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
     }));
   };
 
-  const updateAppointment = (id: string,  Partial<Appointment>) => {
+  const updateAppointment = (id: string, data: Partial<Appointment>) => {
     setState(prev => ({
       ...prev,
       appointments: prev.appointments.map(a => a.id === id ? { ...a, ...data } : a),
@@ -442,6 +443,8 @@ export function AppProvider({ children }: { children: ReactNode }) {
       }],
     }));
 
+    // Cette fonction enregistre le message dans l'historique.
+    // L'envoi réel doit être effectué par l'intégration Google Apps Script si elle est configurée.
   };
 
   const generatePurchaseOrderForAppointment = (appointmentId: string): string | null => {
@@ -480,16 +483,6 @@ export function AppProvider({ children }: { children: ReactNode }) {
 
     // Send email to student if enabled
     if (state.automationSettings.autoSendEmails) {
-      sendPurchaseOrderEmail(
-        student.email,
-        student.firstName,
-        poNumber,
-        apt.subject,
-        format(new Date(apt.date + 'T00:00:00'), 'dd MMMM yyyy', { locale: fr }),
-        apt.time,
-        apt.price
-      );
-
       // Log the email
       sendEmail(
         student.email,
@@ -546,16 +539,6 @@ export function AppProvider({ children }: { children: ReactNode }) {
 
     // Send email to student if enabled
     if (state.automationSettings.autoSendEmails) {
-      sendInvoiceEmail(
-        student.email,
-        student.firstName,
-        invoiceNumber,
-        apt.subject,
-        format(new Date(apt.date + 'T00:00:00'), 'dd MMMM yyyy', { locale: fr }),
-        format(dueDate, 'dd/MM/yyyy', { locale: fr }),
-        apt.price
-      );
-
       // Log the email
       sendEmail(
         student.email,
@@ -596,7 +579,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
     }));
   };
 
-  const updateInvoice = (id: string,  Partial<Invoice>) => {
+  const updateInvoice = (id: string, data: Partial<Invoice>) => {
     setState(prev => ({
       ...prev,
       invoices: prev.invoices.map(i => i.id === id ? { ...i, ...data } : i),
@@ -617,7 +600,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
     }));
   };
 
-  const updatePurchaseOrder = (id: string,  Partial<PurchaseOrder>) => {
+  const updatePurchaseOrder = (id: string, data: Partial<PurchaseOrder>) => {
     setState(prev => ({
       ...prev,
       purchaseOrders: prev.purchaseOrders.map(p => p.id === id ? { ...p, ...data } : p),
@@ -638,26 +621,27 @@ export function AppProvider({ children }: { children: ReactNode }) {
     }));
   };
 
-const updateCompanyInfo = (data: Partial<CompanyInfo>) => {
-  setState(prev => ({
-    ...prev,
-    companyInfo: { ...prev.companyInfo, ...data },
-  }));
-};
+  const updateCompanyInfo = (data: Partial<CompanyInfo>) => {
+    setState(prev => ({
+      ...prev,
+      companyInfo: { ...prev.companyInfo, ...data },
+    }));
+  };
 
-const updateAutomationSettings = (data: Partial<AutomationSettings>) => {
-  setState(prev => ({
-    ...prev,
-    automationSettings: { ...prev.automationSettings, ...data },
-  }));
-};
+  const updateAutomationSettings = (data: Partial<AutomationSettings>) => {
+    setState(prev => ({
+      ...prev,
+      automationSettings: { ...prev.automationSettings, ...data },
+    }));
+  };
 
-const updatePricingSettings = (data: Partial<PricingSettings>) => {
-  setState(prev => ({
-    ...prev,
-    pricingSettings: { ...prev.pricingSettings, ...data },
-  }));
-};
+  const updatePricingSettings = (data: Partial<PricingSettings>) => {
+    setState(prev => ({
+      ...prev,
+      pricingSettings: { ...prev.pricingSettings, ...data },
+    }));
+  };
+
   const setIsAdmin = (val: boolean) => {
     setState(prev => {
       const newState = { ...prev, isAdmin: val };

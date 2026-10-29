@@ -152,10 +152,7 @@ export default function HomePage() {
         isNew = true;
 
         // Envoyer l'email avec le mot de passe
-        import('../services/emailService').then(({ sendWelcomeEmail }) => {
-          sendWelcomeEmail(studentInfo.email, studentInfo.firstName, password);
-        });
-
+       
         // Log the email
         sendEmail(
           studentInfo.email,
@@ -183,10 +180,6 @@ export default function HomePage() {
         isNew = true;
 
         if (studentInfo.email) {
-          import('../services/emailService').then(({ sendWelcomeEmail }) => {
-            sendWelcomeEmail(studentInfo.email, studentInfo.firstName || 'Nouveau', password);
-          });
-
           // Log the email
           sendEmail(
             studentInfo.email,
