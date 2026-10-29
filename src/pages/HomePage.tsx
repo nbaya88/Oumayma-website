@@ -1,6 +1,6 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useApp } from '../context/AppContext';
-import { Calendar, Clock, BookOpen, CheckCircle, ArrowRight, GraduationCap, Star, Users, Award, TrendingUp, Calculator, Sigma, Pi, FunctionSquare, Atom, FlaskConical, LogIn, UserPlus, Sun, Moon, ChevronLeft, ChevronRight } from 'lucide-react';
+import { Calendar, Clock, BookOpen, CheckCircle, ArrowRight, GraduationCap, Star, Users, Award, TrendingUp, Calculator, Sigma, Pi, FunctionSquare, Atom, FlaskConical, LogIn, UserPlus, Sun, Moon, ChevronLeft, ChevronRight, Quote } from 'lucide-react';
 import { format, addDays } from 'date-fns';
 import { fr } from 'date-fns/locale';
 
@@ -18,6 +18,49 @@ export default function HomePage() {
   const [bookingConfirmed, setBookingConfirmed] = useState(false);
   const [generatedPassword, setGeneratedPassword] = useState('');
   const [isNewAccount, setIsNewAccount] = useState(false);
+  const [currentTestimonial, setCurrentTestimonial] = useState(0);
+
+  // Données des témoignages
+  const testimonials = [
+    {
+      name: 'Marie D.',
+      role: 'Élève de Terminale S',
+      text: 'Grâce à MS Académie, j\'ai obtenu 18 au bac de maths ! Les cours de physique-chimie m\'ont aussi beaucoup aidée pour mes autres matières scientifiques.',
+      rating: 5,
+    },
+    {
+      name: 'Thomas L.',
+      role: 'Parent d\'élève',
+      text: 'Mon fils a progressé de 5 points de moyenne en un trimestre. Les professeurs sont pédagogues et s\'adaptent au rythme de chaque élève.',
+      rating: 5,
+    },
+    {
+      name: 'Sophie M.',
+      role: 'Élève de Première',
+      text: 'Les cours de chimie organique étaient difficiles à comprendre en classe. Ici, tout est expliqué clairement avec des exemples concrets.',
+      rating: 5,
+    },
+    {
+      name: 'Pierre R.',
+      role: 'Parent d\'élève',
+      text: 'Excellente académie ! Ma fille a enfin compris les lois de la physique grâce aux cours particuliers. Je recommande vivement.',
+      rating: 5,
+    },
+    {
+      name: 'Lucas B.',
+      role: 'Élève de Terminale',
+      text: 'La préparation au bac était parfaite. Les annales corrigées et les méthodes de résolution m\'ont beaucoup aidé.',
+      rating: 5,
+    },
+  ];
+
+  // Auto-défilement du carrousel
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setCurrentTestimonial((prev) => (prev + 1) % testimonials.length);
+    }, 5000);
+    return () => clearInterval(interval);
+  }, [testimonials.length]);
 
   const activeAppointments = appointments.filter(a => !a.archived && a.status !== 'cancelled');
   const availableTimes = ['08:00', '09:00', '10:00', '11:00', '14:00', '15:00', '16:00', '17:00', '18:00', '19:00'];
@@ -111,8 +154,8 @@ export default function HomePage() {
         // Envoyer l'email avec le mot de passe
         sendEmail(
           studentInfo.email,
-          `Bienvenue sur MathPro - Votre compte a été créé`,
-          `Bonjour ${studentInfo.firstName},\n\nVotre compte MathPro a été créé avec succès !\n\nVos identifiants de connexion :\n- Email : ${studentInfo.email}\n- Mot de passe : ${password}\n\nVous pouvez maintenant accéder à votre espace élève pour :\n- Consulter vos cours à venir\n- Télécharger vos factures et bons de commande\n- Uploader des documents\n- Réserver de nouveaux cours\n\nPour vous connecter, rendez-vous sur la page d'accueil et cliquez sur "Espace élève".\n\nCordialement,\nL'équipe MathPro`,
+          `Bienvenue sur MS Académie - Votre compte a été créé`,
+          `Bonjour ${studentInfo.firstName},\n\nVotre compte MS Académie a été créé avec succès !\n\nVos identifiants de connexion :\n- Email : ${studentInfo.email}\n- Mot de passe : ${password}\n\nVous pouvez maintenant accéder à votre espace élève pour :\n- Consulter vos cours à venir\n- Télécharger vos factures et bons de commande\n- Uploader des documents\n- Réserver de nouveaux cours\n\nPour vous connecter, rendez-vous sur la page d'accueil et cliquez sur "Espace élève".\n\nCordialement,\nL'équipe MS Académie`,
           'password',
           studentId
         );
@@ -137,8 +180,8 @@ export default function HomePage() {
         if (studentInfo.email) {
           sendEmail(
             studentInfo.email,
-            `Bienvenue sur MathPro - Votre compte a été créé`,
-            `Bonjour ${studentInfo.firstName || 'Nouveau'},\n\nVotre compte MathPro a été créé avec succès !\n\nVos identifiants de connexion :\n- Email : ${studentInfo.email}\n- Mot de passe : ${password}\n\nCordialement,\nL'équipe MathPro`,
+            `Bienvenue sur MS Académie - Votre compte a été créé`,
+            `Bonjour ${studentInfo.firstName || 'Nouveau'},\n\nVotre compte MS Académie a été créé avec succès !\n\nVos identifiants de connexion :\n- Email : ${studentInfo.email}\n- Mot de passe : ${password}\n\nCordialement,\nL'équipe MS Académie`,
             'password',
             studentId
           );
@@ -284,7 +327,7 @@ export default function HomePage() {
     <div className="min-h-screen theme-bg-primary theme-text-primary overflow-hidden">
       {/* Animated Background */}
       <div className="fixed inset-0 overflow-hidden pointer-events-none">
-        {/* Symboles mathématiques - beaucoup plus visibles en mode light */}
+        {/* Symboles mathématiques et scientifiques - beaucoup plus visibles en mode light */}
         <div className={`absolute top-20 left-[10%] text-7xl font-bold animate-pulse ${theme === 'dark' ? 'text-indigo-500/10' : 'text-indigo-600/40'}`}>∑</div>
         <div className={`absolute top-40 right-[15%] text-6xl font-bold animate-pulse ${theme === 'dark' ? 'text-purple-500/10' : 'text-purple-600/40'}`} style={{ animationDelay: '0.5s' }}>∫</div>
         <div className={`absolute top-[60%] left-[5%] text-8xl font-bold animate-pulse ${theme === 'dark' ? 'text-blue-500/10' : 'text-blue-600/40'}`} style={{ animationDelay: '1s' }}>π</div>
@@ -293,6 +336,12 @@ export default function HomePage() {
         <div className={`absolute bottom-[40%] left-[20%] text-5xl font-bold animate-pulse ${theme === 'dark' ? 'text-purple-500/10' : 'text-purple-600/40'}`} style={{ animationDelay: '0.8s' }}>√</div>
         <div className={`absolute top-[50%] left-[50%] text-4xl font-bold animate-pulse ${theme === 'dark' ? 'text-blue-500/10' : 'text-blue-600/40'}`} style={{ animationDelay: '1.2s' }}>θ</div>
         <div className={`absolute top-[15%] left-[40%] text-5xl font-bold animate-pulse ${theme === 'dark' ? 'text-cyan-500/10' : 'text-cyan-600/40'}`} style={{ animationDelay: '0.3s' }}>φ</div>
+
+        {/* Symboles de physique-chimie */}
+        <div className={`absolute top-[70%] right-[10%] text-4xl font-bold animate-pulse ${theme === 'dark' ? 'text-emerald-500/15' : 'text-emerald-600/35'}`} style={{ animationDelay: '1.8s' }}>H₂O</div>
+        <div className={`absolute top-[25%] left-[25%] text-3xl font-bold animate-pulse ${theme === 'dark' ? 'text-emerald-500/15' : 'text-emerald-600/35'}`} style={{ animationDelay: '2.2s' }}>CO₂</div>
+        <div className={`absolute bottom-[30%] left-[35%] text-4xl font-bold animate-pulse ${theme === 'dark' ? 'text-amber-500/15' : 'text-amber-600/35'}`} style={{ animationDelay: '1.4s' }}>E=mc²</div>
+        <div className={`absolute top-[45%] right-[30%] text-3xl font-bold animate-pulse ${theme === 'dark' ? 'text-amber-500/15' : 'text-amber-600/35'}`} style={{ animationDelay: '0.6s' }}>NaCl</div>
 
         {/* Grille - beaucoup plus visible en mode light */}
         <div className={`absolute inset-0 ${theme === 'dark' ? 'opacity-[0.03]' : 'opacity-[0.15]'}`} style={{
@@ -312,8 +361,8 @@ export default function HomePage() {
             <Sigma className="w-6 h-6 text-white" />
           </div>
           <div>
-            <span className={`text-xl font-bold ${theme === 'dark' ? 'text-white' : 'text-gray-900'}`}>MathPro</span>
-            <span className={`text-xs block -mt-1 ${theme === 'dark' ? 'text-indigo-400' : 'text-indigo-600'}`}>Cours de mathématiques</span>
+            <span className={`text-xl font-bold ${theme === 'dark' ? 'text-white' : 'text-gray-900'}`}>MS Académie</span>
+            <span className={`text-xs block -mt-1 ${theme === 'dark' ? 'text-indigo-400' : 'text-indigo-600'}`}>Cours particuliers scientifiques</span>
           </div>
         </div>
         <div className="flex items-center gap-3">
@@ -458,7 +507,7 @@ export default function HomePage() {
         <div className="text-center mb-12">
           <h2 className={`text-3xl md:text-4xl font-bold mb-4 ${theme === 'dark' ? 'text-white' : 'text-gray-900'}`}>Domaines d'enseignement</h2>
           <p className={`max-w-2xl mx-auto ${theme === 'dark' ? 'text-gray-300' : 'text-gray-700'}`}>
-            Un accompagnement complet dans tous les domaines des mathématiques
+            Un accompagnement complet en mathématiques, physique et chimie
           </p>
         </div>
 
@@ -467,10 +516,10 @@ export default function HomePage() {
             { icon: <FunctionSquare className="w-6 h-6" />, title: 'Analyse', desc: 'Fonctions, limites, dérivées, intégrales', color: 'from-indigo-500 to-blue-500' },
             { icon: <Pi className="w-6 h-6" />, title: 'Géométrie', desc: 'Vecteurs, espaces, trigonométrie', color: 'from-purple-500 to-pink-500' },
             { icon: <Calculator className="w-6 h-6" />, title: 'Algèbre', desc: 'Équations, polynômes, matrices', color: 'from-cyan-500 to-teal-500' },
-            { icon: <Atom className="w-6 h-6" />, title: 'Probabilités', desc: 'Statistiques, lois, dénombrement', color: 'from-green-500 to-emerald-500' },
-            { icon: <TrendingUp className="w-6 h-6" />, title: 'Suites', desc: 'Récurrence, convergence, limites', color: 'from-amber-500 to-orange-500' },
-            { icon: <Sigma className="w-6 h-6" />, title: 'Arithmétique', desc: 'Nombres, divisibilité, congruences', color: 'from-red-500 to-rose-500' },
-            { icon: <FlaskConical className="w-6 h-6" />, title: 'Bac / Concours', desc: 'Préparation intensive aux examens', color: 'from-violet-500 to-purple-500' },
+            { icon: <Atom className="w-6 h-6" />, title: 'Physique', desc: 'Mécanique, électricité, optique', color: 'from-green-500 to-emerald-500' },
+            { icon: <FlaskConical className="w-6 h-6" />, title: 'Chimie', desc: 'Organique, minérale, solutions', color: 'from-amber-500 to-orange-500' },
+            { icon: <TrendingUp className="w-6 h-6" />, title: 'Probabilités', desc: 'Statistiques, lois, dénombrement', color: 'from-red-500 to-rose-500' },
+            { icon: <Sigma className="w-6 h-6" />, title: 'Bac / Concours', desc: 'Préparation intensive aux examens', color: 'from-violet-500 to-purple-500' },
             { icon: <Award className="w-6 h-6" />, title: 'Supérieur', desc: 'Prépa, BTS, licence, master', color: 'from-sky-500 to-blue-500' },
           ].map((item, idx) => (
             <div key={idx} className={`group rounded-2xl p-5 transition-all hover:-translate-y-1 ${
@@ -865,24 +914,119 @@ export default function HomePage() {
         </div>
       </section>
 
+      {/* Testimonials Carousel */}
+      <section className="relative z-10 max-w-7xl mx-auto px-4 py-24">
+        <div className="text-center mb-12">
+          <h2 className={`text-3xl md:text-4xl font-bold mb-4 ${theme === 'dark' ? 'text-white' : 'text-gray-900'}`}>
+            Ils nous font confiance
+          </h2>
+          <p className={`max-w-2xl mx-auto ${theme === 'dark' ? 'text-gray-300' : 'text-gray-700'}`}>
+            Découvrez les témoignages de nos élèves et parents
+          </p>
+        </div>
+
+        <div className="relative max-w-4xl mx-auto">
+          {/* Carrousel */}
+          <div className="overflow-hidden">
+            <div
+              className="flex transition-transform duration-500 ease-in-out"
+              style={{ transform: `translateX(-${currentTestimonial * 100}%)` }}
+            >
+              {testimonials.map((testimonial, idx) => (
+                <div key={idx} className="w-full flex-shrink-0 px-4">
+                  <div className={`rounded-2xl p-8 ${
+                    theme === 'dark'
+                      ? 'bg-slate-900/50 backdrop-blur border border-gray-800'
+                      : 'bg-white border-2 border-gray-300 shadow-lg'
+                  }`}>
+                    <div className="flex items-start gap-4">
+                      <Quote className={`w-10 h-10 flex-shrink-0 ${theme === 'dark' ? 'text-indigo-400' : 'text-indigo-600'}`} />
+                      <div className="flex-1">
+                        <p className={`text-lg mb-4 ${theme === 'dark' ? 'text-gray-300' : 'text-gray-700'}`}>
+                          {testimonial.text}
+                        </p>
+                        <div className="flex items-center justify-between">
+                          <div>
+                            <div className={`font-bold ${theme === 'dark' ? 'text-white' : 'text-gray-900'}`}>
+                              {testimonial.name}
+                            </div>
+                            <div className={`text-sm ${theme === 'dark' ? 'text-gray-400' : 'text-gray-600'}`}>
+                              {testimonial.role}
+                            </div>
+                          </div>
+                          <div className="flex gap-1">
+                            {[...Array(testimonial.rating)].map((_, i) => (
+                              <Star key={i} className="w-5 h-5 text-yellow-400 fill-yellow-400" />
+                            ))}
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          {/* Contrôles du carrousel */}
+          <div className="flex justify-center items-center gap-4 mt-8">
+            <button
+              onClick={() => setCurrentTestimonial((prev) => (prev - 1 + testimonials.length) % testimonials.length)}
+              className={`p-2 rounded-full transition-colors ${
+                theme === 'dark'
+                  ? 'bg-slate-800 hover:bg-slate-700 text-gray-300'
+                  : 'bg-gray-200 hover:bg-gray-300 text-gray-700'
+              }`}
+            >
+              <ChevronLeft className="w-5 h-5" />
+            </button>
+
+            <div className="flex gap-2">
+              {testimonials.map((_, idx) => (
+                <button
+                  key={idx}
+                  onClick={() => setCurrentTestimonial(idx)}
+                  className={`w-2 h-2 rounded-full transition-all ${
+                    idx === currentTestimonial
+                      ? 'bg-indigo-600 w-8'
+                      : theme === 'dark' ? 'bg-gray-600' : 'bg-gray-300'
+                  }`}
+                />
+              ))}
+            </div>
+
+            <button
+              onClick={() => setCurrentTestimonial((prev) => (prev + 1) % testimonials.length)}
+              className={`p-2 rounded-full transition-colors ${
+                theme === 'dark'
+                  ? 'bg-slate-800 hover:bg-slate-700 text-gray-300'
+                  : 'bg-gray-200 hover:bg-gray-300 text-gray-700'
+              }`}
+            >
+              <ChevronRight className="w-5 h-5" />
+            </button>
+          </div>
+        </div>
+      </section>
+
       {/* Footer */}
       <footer className={`relative z-10 border-t py-8 mt-16 ${theme === 'dark' ? 'border-gray-800' : 'border-gray-300'}`}>
         <div className="max-w-7xl mx-auto px-4">
           <div className="flex flex-col md:flex-row items-center justify-between gap-4">
             <div className="flex items-center gap-2">
               <Sigma className="w-6 h-6 text-indigo-400" />
-              <span className={`font-bold ${theme === 'dark' ? 'text-white' : 'text-gray-900'}`}>MathPro</span>
-              <span className={`text-sm ${theme === 'dark' ? 'text-gray-400' : 'text-gray-600'}`}>— Cours particuliers de mathématiques</span>
+              <span className={`font-bold ${theme === 'dark' ? 'text-white' : 'text-gray-900'}`}>MS Académie</span>
+              <span className={`text-sm ${theme === 'dark' ? 'text-gray-400' : 'text-gray-600'}`}>— Cours particuliers scientifiques</span>
             </div>
             <div className="flex items-center gap-4">
               <button
-                onClick={() => window.location.hash = '#student-login'}
+                onClick={() => window.location.href = '/student-login'}
                 className={`flex items-center gap-2 text-sm transition-colors ${theme === 'dark' ? 'text-gray-400 hover:text-white' : 'text-gray-600 hover:text-gray-900'}`}
               >
                 <UserPlus className="w-4 h-4" /> Espace élève
               </button>
               <button
-                onClick={() => window.location.hash = '#admin'}
+                onClick={() => window.location.href = '/login'}
                 className={`text-sm transition-colors ${theme === 'dark' ? 'text-gray-400 hover:text-gray-200' : 'text-gray-600 hover:text-gray-800'}`}
               >
                 Espace professeur
@@ -895,13 +1039,7 @@ export default function HomePage() {
                 📤 Guide GitHub
               </a>
               <a
-                href="#diagnostic"
-                className={`text-sm transition-colors ${theme === 'dark' ? 'text-gray-400 hover:text-gray-200' : 'text-gray-600 hover:text-gray-800'}`}
-              >
-                🔧 Diagnostic
-              </a>
-              <a
-                href="#reset"
+                href="/reset"
                 className={`text-sm transition-colors ${theme === 'dark' ? 'text-gray-400 hover:text-gray-200' : 'text-gray-600 hover:text-gray-800'}`}
               >
                 🔄 Réinitialiser
@@ -909,7 +1047,7 @@ export default function HomePage() {
             </div>
           </div>
           <div className={`text-center text-xs mt-6 ${theme === 'dark' ? 'text-gray-400' : 'text-gray-600'}`}>
-            © 2026 MathPro — Tous droits réservés
+            © 2026 MS Académie — Tous droits réservés
           </div>
         </div>
       </footer>

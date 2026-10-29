@@ -268,7 +268,20 @@ export default function CalendarPage() {
                       return (
                         <div
                           key={apt.id}
-                          onClick={() => { setSelectedAppointment(apt.id); setShowModal(true); setEditMode(false); }}
+                          onClick={() => {
+                            setSelectedAppointment(apt.id);
+                            setEditForm({
+                              date: apt.date,
+                              time: apt.time,
+                              duration: apt.duration,
+                              subject: apt.subject,
+                              status: apt.status,
+                              notes: apt.notes,
+                              price: apt.price,
+                            });
+                            setShowModal(true);
+                            setEditMode(false);
+                          }}
                           className="p-4 rounded-xl border border-gray-100 hover:border-indigo-200 hover:shadow-sm cursor-pointer transition-all"
                         >
                           <div className="flex items-start justify-between mb-2">
@@ -348,12 +361,12 @@ export default function CalendarPage() {
                     <div className="flex justify-between items-center">
                       <span className="text-gray-500">Statut</span>
                       <select
-                        value={apt.status}
-                        onChange={(e) => handleStatusChange(apt.id, e.target.value as any)}
+                        value={editForm.status}
+                        onChange={(e) => setEditForm({ ...editForm, status: e.target.value as any })}
                         className={`text-xs font-medium px-3 py-1.5 rounded-full border-0 cursor-pointer ${
-                          apt.status === 'confirmed' ? 'bg-green-100 text-green-700' :
-                          apt.status === 'pending' ? 'bg-amber-100 text-amber-700' :
-                          apt.status === 'cancelled' ? 'bg-red-100 text-red-700' :
+                          editForm.status === 'confirmed' ? 'bg-green-100 text-green-700' :
+                          editForm.status === 'pending' ? 'bg-amber-100 text-amber-700' :
+                          editForm.status === 'cancelled' ? 'bg-red-100 text-red-700' :
                           'bg-blue-100 text-blue-700'
                         }`}
                       >
@@ -362,6 +375,15 @@ export default function CalendarPage() {
                         <option value="completed">Terminé</option>
                         <option value="cancelled">Annulé</option>
                       </select>
+                    </div>
+                    {/* Bouton Archiver en petit sous le statut */}
+                    <div className="flex justify-end">
+                      <button
+                        onClick={() => { handleArchive(apt.id); setShowModal(false); }}
+                        className="flex items-center gap-1 px-2 py-1 text-xs text-gray-500 hover:text-gray-700 hover:bg-gray-100 rounded transition-colors"
+                      >
+                        <Archive className="w-3 h-3" /> Archiver
+                      </button>
                     </div>
                     <div className="flex justify-between">
                       <span className="text-gray-500">Prix</span>
@@ -377,16 +399,22 @@ export default function CalendarPage() {
 
                   <div className="grid grid-cols-2 gap-2">
                     <button
-                      onClick={() => { handleArchive(apt.id); setShowModal(false); }}
-                      className="flex items-center justify-center gap-2 px-4 py-2 bg-gray-600 text-white rounded-xl font-medium hover:bg-gray-700 transition-colors text-sm"
+                      onClick={() => { setShowModal(false); setEditMode(false); }}
+                      className="flex items-center justify-center gap-2 px-4 py-2 border border-gray-300 text-gray-700 rounded-xl font-medium hover:bg-gray-50 transition-colors text-sm"
                     >
-                      <Archive className="w-4 h-4" /> Archiver
+                      Annuler
                     </button>
                     <button
-                      onClick={() => { handleDelete(apt.id); setShowModal(false); }}
-                      className="flex items-center justify-center gap-2 px-4 py-2 bg-red-600 text-white rounded-xl font-medium hover:bg-red-700 transition-colors text-sm"
+                      onClick={() => {
+                        if (editForm.status !== apt.status) {
+                          handleStatusChange(apt.id, editForm.status);
+                        }
+                        setShowModal(false);
+                        setEditMode(false);
+                      }}
+                      className="flex items-center justify-center gap-2 px-4 py-2 bg-green-600 text-white rounded-xl font-medium hover:bg-green-700 transition-colors text-sm"
                     >
-                      <Trash2 className="w-4 h-4" /> Supprimer
+                      <CheckCircle className="w-4 h-4" /> OK
                     </button>
                   </div>
                 </>
