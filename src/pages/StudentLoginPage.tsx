@@ -188,10 +188,7 @@ export default function StudentLoginPage() {
 
             <div className="pt-4 border-t border-gray-100">
               <button
-                onClick={() => {
-                  window.history.pushState({}, '', window.location.pathname);
-                  window.dispatchEvent(new PopStateEvent('popstate'));
-                }}
+                onClick={() => window.location.hash = '#/'}
                 className="w-full flex items-center justify-center gap-2 text-sm text-gray-500 hover:text-gray-700 transition-colors"
               >
                 <ArrowLeft className="w-4 h-4" /> Retour à l'accueil

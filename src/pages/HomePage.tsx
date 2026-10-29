@@ -1020,26 +1020,26 @@ export default function HomePage() {
             </div>
             <div className="flex items-center gap-4">
               <button
-                onClick={() => window.location.href = '/student-login'}
+                onClick={() => window.location.hash = '#/student-login'}
                 className={`flex items-center gap-2 text-sm transition-colors ${theme === 'dark' ? 'text-gray-400 hover:text-white' : 'text-gray-600 hover:text-gray-900'}`}
               >
                 <UserPlus className="w-4 h-4" /> Espace élève
               </button>
               <button
-                onClick={() => window.location.href = '/login'}
+                onClick={() => window.location.hash = '#/login'}
                 className={`text-sm transition-colors ${theme === 'dark' ? 'text-gray-400 hover:text-gray-200' : 'text-gray-600 hover:text-gray-800'}`}
               >
                 Espace professeur
               </button>
               <a
-                href="/guide-github.html"
+                href="guide-github.html"
                 target="_blank"
                 className={`text-sm transition-colors ${theme === 'dark' ? 'text-gray-400 hover:text-gray-200' : 'text-gray-600 hover:text-gray-800'}`}
               >
                 📤 Guide GitHub
               </a>
               <a
-                href="/reset"
+                href="#/reset"
                 className={`text-sm transition-colors ${theme === 'dark' ? 'text-gray-400 hover:text-gray-200' : 'text-gray-600 hover:text-gray-800'}`}
               >
                 🔄 Réinitialiser

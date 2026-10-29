@@ -24,7 +24,7 @@ export default function AdminLayout({ currentPage, onPageChange, children }: Adm
 
   const handleLogout = () => {
     setIsAdmin(false);
-    onPageChange('home');
+    window.location.hash = '#/';
   };
 
   return (
@@ -81,7 +81,7 @@ export default function AdminLayout({ currentPage, onPageChange, children }: Adm
           </div>
 
           <button
-            onClick={() => onPageChange('home')}
+            onClick={() => window.location.hash = '#/'}
             className="w-full flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium theme-text-secondary hover:theme-bg-hover transition-all"
           >
             <Home className="w-5 h-5" />
@@ -142,7 +142,7 @@ export default function AdminLayout({ currentPage, onPageChange, children }: Adm
                 </button>
               </div>
               <button
-                onClick={() => { onPageChange('home'); setSidebarOpen(false); }}
+                onClick={() => { window.location.hash = '#/'; setSidebarOpen(false); }}
                 className="w-full flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium theme-text-secondary hover:theme-bg-hover"
               >
                 <Home className="w-5 h-5" />

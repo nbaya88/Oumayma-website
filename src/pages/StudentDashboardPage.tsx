@@ -250,16 +250,13 @@ export default function StudentDashboardPage() {
           </div>
           <div className="flex items-center gap-2">
             <button
-              onClick={() => {
-                window.history.pushState({}, '', window.location.pathname);
-                window.dispatchEvent(new PopStateEvent('popstate'));
-              }}
+              onClick={() => window.location.hash = '#/'}
               className="text-sm text-gray-500 hover:text-gray-700 px-3 py-2 rounded-lg hover:bg-gray-100 transition-colors"
             >
               Accueil
             </button>
             <button
-              onClick={() => window.location.hash = '#student-profile'}
+              onClick={() => window.location.hash = '#/student-profile'}
               className="flex items-center gap-2 text-sm text-gray-600 hover:text-gray-800 px-3 py-2 rounded-lg hover:bg-gray-100 transition-colors"
             >
               <User className="w-4 h-4" /> Profil
