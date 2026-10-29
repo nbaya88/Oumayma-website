@@ -1,8 +1,10 @@
-import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
+import React, { createContext, useContext, useState, useEffect, ReactNode, useRef } from 'react';
 import { Student, Appointment, Invoice, PurchaseOrder, Document, CompanyInfo, EmailLog, Theme, AutomationSettings, PricingSettings } from '../types';
 import { v4 as uuidv4 } from 'uuid';
 import { format } from 'date-fns';
 import { fr } from 'date-fns/locale';
+import { sendWelcomeEmail, sendPurchaseOrderEmail, sendInvoiceEmail, initEmailJS } from '../services/emailService';
+import { saveAllData } from '../services/googleSheetsAPI';
 
 interface AppState {
   students: Student[];
@@ -22,7 +24,7 @@ interface AppState {
 interface AppContextType extends AppState {
   // Student
   addStudent: (student: Omit<Student, 'id' | 'createdAt' | 'archived'>) => void;
-  updateStudent: (id: string, data: Partial<Student>) => void;
+  updateStudent: (id: string,  Partial<Student>) => void;
   deleteStudent: (id: string) => void;
   archiveStudent: (id: string) => void;
   getStudentById: (id: string) => Student | undefined;
@@ -34,7 +36,7 @@ interface AppContextType extends AppState {
   generatePassword: () => string;
   // Appointment
   addAppointment: (appointment: Omit<Appointment, 'id' | 'createdAt' | 'archived'>) => void;
-  updateAppointment: (id: string, data: Partial<Appointment>) => void;
+  updateAppointment: (id: string,  Partial<Appointment>) => void;
   deleteAppointment: (id: string) => void;
   archiveAppointment: (id: string) => void;
   confirmAppointment: (id: string) => void;
@@ -42,20 +44,20 @@ interface AppContextType extends AppState {
   completeAppointment: (id: string) => void;
   // Invoice
   addInvoice: (invoice: Omit<Invoice, 'id' | 'createdAt'>) => void;
-  updateInvoice: (id: string, data: Partial<Invoice>) => void;
+  updateInvoice: (id: string,  Partial<Invoice>) => void;
   deleteInvoice: (id: string) => void;
   // Purchase Order
   addPurchaseOrder: (po: Omit<PurchaseOrder, 'id' | 'createdAt'>) => void;
-  updatePurchaseOrder: (id: string, data: Partial<PurchaseOrder>) => void;
+  updatePurchaseOrder: (id: string,  Partial<PurchaseOrder>) => void;
   // Document
   addDocument: (doc: Omit<Document, 'id' | 'createdAt'>) => void;
   deleteDocument: (id: string) => void;
   // Company
-  updateCompanyInfo: (data: Partial<CompanyInfo>) => void;
+  updateCompanyInfo: ( Partial<CompanyInfo>) => void;
   // Automation
-  updateAutomationSettings: (data: Partial<AutomationSettings>) => void;
+  updateAutomationSettings: ( Partial<AutomationSettings>) => void;
   // Pricing
-  updatePricingSettings: (data: Partial<PricingSettings>) => void;
+  updatePricingSettings: ( Partial<PricingSettings>) => void;
   // Theme
   setTheme: (theme: Theme) => void;
   toggleTheme: () => void;
@@ -70,6 +72,7 @@ const AppContext = createContext<AppContextType | undefined>(undefined);
 
 const STORAGE_KEY = 'mathprof_data_v2';
 const THEME_KEY = 'mathprof_theme';
+const SESSION_KEY = 'mathprof_session';
 
 const defaultCompanyInfo: CompanyInfo = {
   companyName: '',
@@ -95,30 +98,43 @@ const defaultCompanyInfo: CompanyInfo = {
 function loadFromStorage(): AppState {
   try {
     const data = localStorage.getItem(STORAGE_KEY);
+    const session = localStorage.getItem(SESSION_KEY);
+
+    let isAdmin = false;
+    let currentStudentId = null;
+
+    // Charger la session depuis le localStorage
+    if (session) {
+      const sessionData = JSON.parse(session);
+      isAdmin = sessionData.isAdmin || false;
+      currentStudentId = sessionData.currentStudentId || null;
+    }
+
     if (data) {
       const parsed = JSON.parse(data);
-  return {
-    students: parsed.students || [],
-    appointments: parsed.appointments || [],
-    invoices: parsed.invoices || [],
-    purchaseOrders: parsed.purchaseOrders || [],
-    documents: parsed.documents || [],
-    companyInfo: parsed.companyInfo || defaultCompanyInfo,
-    emailLogs: parsed.emailLogs || [],
-    automationSettings: parsed.automationSettings || {
-      autoGeneratePurchaseOrder: true,
-      autoGenerateInvoice: true,
-      autoSendEmails: true,
-    },
-    pricingSettings: parsed.pricingSettings || {
-      price1h: 45,
-      price1h30: 65,
-      price2h: 85,
-    },
-    isAdmin: parsed.isAdmin || false,
-    currentStudentId: parsed.currentStudentId || null,
-    theme: (localStorage.getItem(THEME_KEY) as Theme) || 'dark',
-  };    }
+      return {
+        students: parsed.students || [],
+        appointments: parsed.appointments || [],
+        invoices: parsed.invoices || [],
+        purchaseOrders: parsed.purchaseOrders || [],
+        documents: parsed.documents || [],
+        companyInfo: parsed.companyInfo || defaultCompanyInfo,
+        emailLogs: parsed.emailLogs || [],
+        automationSettings: parsed.automationSettings || {
+          autoGeneratePurchaseOrder: true,
+          autoGenerateInvoice: true,
+          autoSendEmails: true,
+        },
+        pricingSettings: parsed.pricingSettings || {
+          price1h: 45,
+          price1h30: 65,
+          price2h: 85,
+        },
+        isAdmin,
+        currentStudentId,
+        theme: (localStorage.getItem(THEME_KEY) as Theme) || 'dark',
+      };
+    }
   } catch (e) {
     console.error('Error loading from storage', e);
   }
@@ -153,6 +169,14 @@ function saveToStorage(state: AppState) {
     localStorage.setItem(THEME_KEY, theme);
   } catch (e) {
     console.error('Error saving to storage', e);
+  }
+}
+
+function saveSession(isAdmin: boolean, currentStudentId: string | null) {
+  try {
+    localStorage.setItem(SESSION_KEY, JSON.stringify({ isAdmin, currentStudentId }));
+  } catch (e) {
+    console.error('Error saving session', e);
   }
 }
 
@@ -306,6 +330,35 @@ export function AppProvider({ children }: { children: ReactNode }) {
     saveToStorage(state);
     // Apply theme to document
     document.documentElement.setAttribute('data-theme', state.theme);
+
+    // Sauvegarde automatique vers Google Sheets (debounced)
+    const googleSheetsUrl = (import.meta as any).env?.VITE_GOOGLE_SCRIPT_URL;
+    const googleSheetsApiKey = (import.meta as any).env?.VITE_API_KEY;
+
+    if (googleSheetsUrl && googleSheetsApiKey) {
+      // Debounce: attendre 2 secondes après la dernière modification
+      const timeoutId = setTimeout(() => {
+        const dataToSync = {
+          students: state.students,
+          appointments: state.appointments,
+          invoices: state.invoices,
+          purchaseOrders: state.purchaseOrders,
+          documents: state.documents,
+          companyInfo: state.companyInfo,
+          emailLogs: state.emailLogs,
+        };
+
+        saveAllData(dataToSync).then(result => {
+          if (result.success) {
+            console.log('✅ Données sauvegardées automatiquement dans Google Sheets');
+          } else {
+            console.warn('⚠️ Erreur sauvegarde Google Sheets:', result.message);
+          }
+        });
+      }, 2000);
+
+      return () => clearTimeout(timeoutId);
+    }
   }, [state]);
 
   const addStudent = (student: Omit<Student, 'id' | 'createdAt' | 'archived'>) => {
@@ -315,7 +368,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
     }));
   };
 
-  const updateStudent = (id: string, data: Partial<Student>) => {
+  const updateStudent = (id: string,  Partial<Student>) => {
     setState(prev => ({
       ...prev,
       students: prev.students.map(s => s.id === id ? { ...s, ...data } : s),
@@ -355,7 +408,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
     }));
   };
 
-  const updateAppointment = (id: string, data: Partial<Appointment>) => {
+  const updateAppointment = (id: string,  Partial<Appointment>) => {
     setState(prev => ({
       ...prev,
       appointments: prev.appointments.map(a => a.id === id ? { ...a, ...data } : a),
@@ -376,7 +429,8 @@ export function AppProvider({ children }: { children: ReactNode }) {
     }));
   };
 
-  const sendEmail = (to: string, subject: string, body: string, type: EmailLog['type'], relatedId?: string) => {
+  const sendEmail = async (to: string, subject: string, body: string, type: EmailLog['type'], relatedId?: string) => {
+    // Logger l'email dans l'historique
     setState(prev => ({
       ...prev,
       emailLogs: [...prev.emailLogs, {
@@ -389,6 +443,10 @@ export function AppProvider({ children }: { children: ReactNode }) {
         createdAt: new Date().toISOString(),
       }],
     }));
+
+    // Envoyer l'email via EmailJS si configuré
+    // Note: Les fonctions spécifiques (sendWelcomeEmail, etc.) seront appelées directement
+    // depuis les endroits où elles sont nécessaires pour avoir plus de contrôle
   };
 
   const generatePurchaseOrderForAppointment = (appointmentId: string): string | null => {
@@ -427,10 +485,21 @@ export function AppProvider({ children }: { children: ReactNode }) {
 
     // Send email to student if enabled
     if (state.automationSettings.autoSendEmails) {
+      sendPurchaseOrderEmail(
+        student.email,
+        student.firstName,
+        poNumber,
+        apt.subject,
+        format(new Date(apt.date + 'T00:00:00'), 'dd MMMM yyyy', { locale: fr }),
+        apt.time,
+        apt.price
+      );
+
+      // Log the email
       sendEmail(
         student.email,
-        `Votre bon de commande ${poNumber} - MathPro`,
-        `Bonjour ${student.firstName},\n\nVotre cours de ${apt.subject} prévu le ${format(new Date(apt.date + 'T00:00:00'), 'dd MMMM yyyy', { locale: fr })} à ${apt.time} a été confirmé.\n\nBon de commande N° ${poNumber}\nMontant: ${apt.price}€\n\nCordialement,\nMathPro`,
+        `Votre bon de commande ${poNumber} - MS Académie`,
+        `Bonjour ${student.firstName},\n\nVotre cours de ${apt.subject} prévu le ${format(new Date(apt.date + 'T00:00:00'), 'dd MMMM yyyy', { locale: fr })} à ${apt.time} a été confirmé.\n\nBon de commande N° ${poNumber}\nMontant: ${apt.price}€\n\nCordialement,\nMS Académie`,
         'purchase-order',
         poId
       );
@@ -482,10 +551,21 @@ export function AppProvider({ children }: { children: ReactNode }) {
 
     // Send email to student if enabled
     if (state.automationSettings.autoSendEmails) {
+      sendInvoiceEmail(
+        student.email,
+        student.firstName,
+        invoiceNumber,
+        apt.subject,
+        format(new Date(apt.date + 'T00:00:00'), 'dd MMMM yyyy', { locale: fr }),
+        format(dueDate, 'dd/MM/yyyy', { locale: fr }),
+        apt.price
+      );
+
+      // Log the email
       sendEmail(
         student.email,
-        `Votre facture ${invoiceNumber} - MathPro`,
-        `Bonjour ${student.firstName},\n\nVotre cours de ${apt.subject} du ${format(new Date(apt.date + 'T00:00:00'), 'dd MMMM yyyy', { locale: fr })} est maintenant terminé.\n\nFacture N° ${invoiceNumber}\nMontant: ${apt.price}€\nÉchéance: ${format(dueDate, 'dd/MM/yyyy', { locale: fr })}\n\nMerci de régler par virement sur le IBAN indiqué.\n\nCordialement,\nMathPro`,
+        `Votre facture ${invoiceNumber} - MS Académie`,
+        `Bonjour ${student.firstName},\n\nVotre cours de ${apt.subject} du ${format(new Date(apt.date + 'T00:00:00'), 'dd MMMM yyyy', { locale: fr })} est maintenant terminé.\n\nFacture N° ${invoiceNumber}\nMontant: ${apt.price}€\nÉchéance: ${format(dueDate, 'dd/MM/yyyy', { locale: fr })}\n\nMerci de régler par virement sur le IBAN indiqué.\n\nCordialement,\nMS Académie`,
         'invoice',
         invoiceId
       );
@@ -521,7 +601,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
     }));
   };
 
-  const updateInvoice = (id: string, data: Partial<Invoice>) => {
+  const updateInvoice = (id: string,  Partial<Invoice>) => {
     setState(prev => ({
       ...prev,
       invoices: prev.invoices.map(i => i.id === id ? { ...i, ...data } : i),
@@ -542,7 +622,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
     }));
   };
 
-  const updatePurchaseOrder = (id: string, data: Partial<PurchaseOrder>) => {
+  const updatePurchaseOrder = (id: string,  Partial<PurchaseOrder>) => {
     setState(prev => ({
       ...prev,
       purchaseOrders: prev.purchaseOrders.map(p => p.id === id ? { ...p, ...data } : p),
@@ -563,21 +643,21 @@ export function AppProvider({ children }: { children: ReactNode }) {
     }));
   };
 
-  const updateCompanyInfo = (data: Partial<CompanyInfo>) => {
+  const updateCompanyInfo = ( Partial<CompanyInfo>) => {
     setState(prev => ({
       ...prev,
       companyInfo: { ...prev.companyInfo, ...data },
     }));
   };
 
-  const updateAutomationSettings = (data: Partial<AutomationSettings>) => {
+  const updateAutomationSettings = ( Partial<AutomationSettings>) => {
     setState(prev => ({
       ...prev,
       automationSettings: { ...prev.automationSettings, ...data },
     }));
   };
 
-  const updatePricingSettings = (data: Partial<PricingSettings>) => {
+  const updatePricingSettings = ( Partial<PricingSettings>) => {
     setState(prev => ({
       ...prev,
       pricingSettings: { ...prev.pricingSettings, ...data },
@@ -585,15 +665,27 @@ export function AppProvider({ children }: { children: ReactNode }) {
   };
 
   const setIsAdmin = (val: boolean) => {
-    setState(prev => ({ ...prev, isAdmin: val }));
+    setState(prev => {
+      const newState = { ...prev, isAdmin: val };
+      saveSession(val, prev.currentStudentId);
+      return newState;
+    });
   };
 
   const loginStudent = (studentId: string) => {
-    setState(prev => ({ ...prev, currentStudentId: studentId }));
+    setState(prev => {
+      const newState = { ...prev, currentStudentId: studentId };
+      saveSession(prev.isAdmin, studentId);
+      return newState;
+    });
   };
 
   const logoutStudent = () => {
-    setState(prev => ({ ...prev, currentStudentId: null }));
+    setState(prev => {
+      const newState = { ...prev, currentStudentId: null, isAdmin: false };
+      saveSession(false, null);
+      return newState;
+    });
   };
 
   const generatePassword = () => generateRandomPassword();

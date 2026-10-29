@@ -152,6 +152,11 @@ export default function HomePage() {
         isNew = true;
 
         // Envoyer l'email avec le mot de passe
+        import('../services/emailService').then(({ sendWelcomeEmail }) => {
+          sendWelcomeEmail(studentInfo.email, studentInfo.firstName, password);
+        });
+
+        // Log the email
         sendEmail(
           studentInfo.email,
           `Bienvenue sur MS Académie - Votre compte a été créé`,
@@ -178,6 +183,11 @@ export default function HomePage() {
         isNew = true;
 
         if (studentInfo.email) {
+          import('../services/emailService').then(({ sendWelcomeEmail }) => {
+            sendWelcomeEmail(studentInfo.email, studentInfo.firstName || 'Nouveau', password);
+          });
+
+          // Log the email
           sendEmail(
             studentInfo.email,
             `Bienvenue sur MS Académie - Votre compte a été créé`,
@@ -1031,19 +1041,7 @@ export default function HomePage() {
               >
                 Espace professeur
               </button>
-              <a
-                href="guide-github.html"
-                target="_blank"
-                className={`text-sm transition-colors ${theme === 'dark' ? 'text-gray-400 hover:text-gray-200' : 'text-gray-600 hover:text-gray-800'}`}
-              >
-                📤 Guide GitHub
-              </a>
-              <a
-                href="#/reset"
-                className={`text-sm transition-colors ${theme === 'dark' ? 'text-gray-400 hover:text-gray-200' : 'text-gray-600 hover:text-gray-800'}`}
-              >
-                🔄 Réinitialiser
-              </a>
+
             </div>
           </div>
           <div className={`text-center text-xs mt-6 ${theme === 'dark' ? 'text-gray-400' : 'text-gray-600'}`}>

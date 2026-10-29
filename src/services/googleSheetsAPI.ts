@@ -10,11 +10,11 @@
  * 6. Collez-la dans les paramètres de l'application (section Google Sheets)
  */
 
-// URL de votre Google Apps Script Web App (stockée dans localStorage)
-const getGoogleSheetsUrl = () => localStorage.getItem('google_sheets_url') || '';
+// URL de votre Google Apps Script Web App (variable d'environnement sécurisée)
+const getGoogleSheetsUrl = () => (import.meta as any).env?.VITE_GOOGLE_SCRIPT_URL || '';
 
-// Clé d'API pour sécuriser les requêtes (stockée dans localStorage)
-const getApiKey = () => localStorage.getItem('google_sheets_api_key') || '';
+// Clé d'API pour sécuriser les requêtes (variable d'environnement sécurisée)
+const getApiKey = () => (import.meta as any).env?.VITE_API_KEY || '';
 
 export interface SyncResult {
   success: boolean;
@@ -25,7 +25,7 @@ export interface SyncResult {
 /**
  * Sauvegarder toutes les données dans Google Sheets
  */
-export async function saveAllData(data: any): Promise<SyncResult> {
+export async function saveAllData( any): Promise<SyncResult> {
   const GOOGLE_SCRIPT_URL = getGoogleSheetsUrl();
   const API_KEY = getApiKey();
 
@@ -46,7 +46,7 @@ export async function saveAllData(data: any): Promise<SyncResult> {
       body: JSON.stringify({
         action: 'saveAll',
         apiKey: API_KEY,
-        data: data,
+         data,
       }),
     });
 
@@ -84,7 +84,7 @@ export async function loadAllData(): Promise<SyncResult> {
     return {
       success: true,
       message: 'Données chargées avec succès',
-      data: data.data,
+       data.data,
     };
   } catch (error) {
     console.error('Erreur lors du chargement:', error);
