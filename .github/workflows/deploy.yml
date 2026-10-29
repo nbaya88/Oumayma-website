@@ -1,8 +1,19 @@
-name: Deploy to GitHub Pages
+name: Deploy website to GitHub Pages
 
 on:
   push:
-    branches: [main]
+    branches:
+      - main
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: pages
+  cancel-in-progress: true
 
 permissions:
   contents: read
@@ -10,9 +21,10 @@ permissions:
   id-token: write
 
 jobs:
-  deploy:
+  build:
     runs-on: ubuntu-latest
     steps:
+<<<<<<< HEAD
       - uses: actions/checkout@v4
 
       - name: Setup Node
@@ -28,10 +40,27 @@ jobs:
 
       - name: Build
         run: npm run build
+=======
+      - name: Checkout repository
+        uses: actions/checkout@v6
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v6
+        with:
+          node-version: lts/*
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Build website
+        run: npm run build -- --base=/Oumayma-website/
+>>>>>>> 6ff4015 (Mise à jour du site)
         env:
           VITE_GOOGLE_SCRIPT_URL: ${{ secrets.VITE_GOOGLE_SCRIPT_URL }}
           VITE_API_KEY: ${{ secrets.VITE_API_KEY }}
 
+<<<<<<< HEAD
       - name: Setup Pages
         uses: actions/configure-pages@v4
 
@@ -41,5 +70,23 @@ jobs:
           path: ./dist
 
       - name: Deploy to GitHub Pages
+=======
+      - name: Configure GitHub Pages
+        uses: actions/configure-pages@v5
+
+      - name: Upload website
+        uses: actions/upload-pages-artifact@v4
+        with:
+          path: ./dist
+
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - name: Deploy website
+>>>>>>> 6ff4015 (Mise à jour du site)
         id: deployment
         uses: actions/deploy-pages@v4
