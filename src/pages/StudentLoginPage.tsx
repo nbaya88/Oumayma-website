@@ -1,9 +1,10 @@
 import React, { useState } from 'react';
 import { useApp } from '../context/AppContext';
 import { Mail, Phone, Lock, ArrowLeft, User, GraduationCap, CheckCircle } from 'lucide-react';
+import { sendPasswordRecoveryEmail } from '../services/googleSheetsAPI';
 
 export default function StudentLoginPage() {
-  const { findStudentByEmailOrPhone, addStudent, loginStudent, generatePassword } = useApp();
+  const { findStudentByEmailOrPhone, addStudent, loginStudent, generatePassword, sendEmail } = useApp();
   const [mode, setMode] = useState<'login' | 'register' | 'forgot' | 'code-sent'>('login');
   const [identifier, setIdentifier] = useState('');
   const [password, setPassword] = useState('');
@@ -31,14 +32,32 @@ export default function StudentLoginPage() {
     loginStudent(student.id);
   };
 
-  const handleForgotPassword = () => {
+  const handleForgotPassword = async () => {
     setError('');
     const student = findStudentByEmailOrPhone(identifier);
     if (!student) {
       setError('Aucun compte trouvé avec cet identifiant');
       return;
     }
-    // Simulate sending password by email
+
+    // Envoyer l'email via Google Apps Script
+    if (student.email) {
+      await sendPasswordRecoveryEmail(
+        student.email,
+        student.firstName,
+        student.password
+      );
+
+      // Logger l'email dans l'historique
+      sendEmail(
+        student.email,
+        `Récupération de votre mot de passe - MS Académie`,
+        `Bonjour ${student.firstName},\n\nVous avez demandé la récupération de votre mot de passe MS Académie.\n\n🔐 Votre mot de passe :\n${student.password}\n\n⚠️ Important :\n• Conservez ce mot de passe en lieu sûr\n• Nous vous recommandons de le changer après votre connexion\n• Ne partagez jamais votre mot de passe\n\nSi vous n'avez pas demandé cette récupération, ignorez cet email.\n\nCordialement,\nL'équipe MS Académie`,
+        'password',
+        student.id
+      );
+    }
+
     setGeneratedPassword(student.password);
     setMode('code-sent');
   };
