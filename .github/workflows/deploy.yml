@@ -4,30 +4,42 @@ on:
   push:
     branches: [main]
 
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
 jobs:
   deploy:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v3
-      
+      - uses: actions/checkout@v4
+
       - name: Setup Node
-        uses: actions/setup-node@v3
+        uses: actions/setup-node@v4
         with:
-          node-version: '18'
-      
-      - name: Clean install
+          node-version: '20'
+          cache: 'npm'
+
+      - name: Install dependencies
         run: |
           rm -rf node_modules package-lock.json
-          npm install
-      
+          npm install --legacy-peer-deps
+
       - name: Build
         run: npm run build
         env:
           VITE_GOOGLE_SCRIPT_URL: ${{ secrets.VITE_GOOGLE_SCRIPT_URL }}
           VITE_API_KEY: ${{ secrets.VITE_API_KEY }}
-      
-      - name: Deploy
-        uses: peaceiris/actions-gh-pages@v3
+
+      - name: Setup Pages
+        uses: actions/configure-pages@v4
+
+      - name: Upload artifact
+        uses: actions/upload-pages-artifact@v3
         with:
-          github_token: ${{ secrets.GITHUB_TOKEN }}
-          publish_dir: ./dist
+          path: ./dist
+
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4
