@@ -1,28 +1,20 @@
 /**
  * Service API pour Google Sheets via Google Apps Script
- * 
+ *
  * Configuration :
  * 1. Créez une feuille Google Sheets
  * 2. Ouvrez Extensions > Apps Script
  * 3. Collez le code du fichier google-apps-script.js
  * 4. Déployez > Nouveau déploiement > Application Web
  * 5. Copiez l'URL du déploiement
- * 6. Collez-la dans la variable GOOGLE_SCRIPT_URL ci-dessous
+ * 6. Collez-la dans les paramètres de l'application (section Google Sheets)
  */
 
-// URL de votre Google Apps Script Web App
-const GOOGLE_SCRIPT_URL = import.meta.env.VITE_GOOGLE_SCRIPT_URL;
-// Clé d'API pour sécuriser les requêtes (à définir dans le script Google)
-const API_KEY = import.meta.env.VITE_API_KEY;
+// URL de votre Google Apps Script Web App (stockée dans localStorage)
+const getGoogleSheetsUrl = () => localStorage.getItem('google_sheets_url') || '';
 
-// Vérification que les variables sont définies
-if (!GOOGLE_SCRIPT_URL) {
-  console.error('❌ VITE_GOOGLE_SCRIPT_URL n\'est pas défini dans .env.local');
-}
-if (!API_KEY) {
-  console.error('❌ VITE_API_KEY n\'est pas défini dans .env.local');
-}
-```
+// Clé d'API pour sécuriser les requêtes (stockée dans localStorage)
+const getApiKey = () => localStorage.getItem('google_sheets_api_key') || '';
 
 export interface SyncResult {
   success: boolean;
@@ -34,6 +26,16 @@ export interface SyncResult {
  * Sauvegarder toutes les données dans Google Sheets
  */
 export async function saveAllData(data: any): Promise<SyncResult> {
+  const GOOGLE_SCRIPT_URL = getGoogleSheetsUrl();
+  const API_KEY = getApiKey();
+
+  if (!GOOGLE_SCRIPT_URL || !API_KEY) {
+    return {
+      success: false,
+      message: 'Configuration Google Sheets manquante. Veuillez configurer l\'URL et la clé API dans les paramètres.',
+    };
+  }
+
   try {
     const response = await fetch(GOOGLE_SCRIPT_URL, {
       method: 'POST',
@@ -65,6 +67,16 @@ export async function saveAllData(data: any): Promise<SyncResult> {
  * Charger toutes les données depuis Google Sheets
  */
 export async function loadAllData(): Promise<SyncResult> {
+  const GOOGLE_SCRIPT_URL = getGoogleSheetsUrl();
+  const API_KEY = getApiKey();
+
+  if (!GOOGLE_SCRIPT_URL || !API_KEY) {
+    return {
+      success: false,
+      message: 'Configuration Google Sheets manquante. Veuillez configurer l\'URL et la clé API dans les paramètres.',
+    };
+  }
+
   try {
     const response = await fetch(`${GOOGLE_SCRIPT_URL}?action=loadAll&apiKey=${API_KEY}`);
     const data = await response.json();
@@ -72,7 +84,7 @@ export async function loadAllData(): Promise<SyncResult> {
     return {
       success: true,
       message: 'Données chargées avec succès',
-      data: data,
+      data: data.data,
     };
   } catch (error) {
     console.error('Erreur lors du chargement:', error);
@@ -87,6 +99,16 @@ export async function loadAllData(): Promise<SyncResult> {
  * Sauvegarder un élève spécifique
  */
 export async function saveStudent(student: any): Promise<SyncResult> {
+  const GOOGLE_SCRIPT_URL = getGoogleSheetsUrl();
+  const API_KEY = getApiKey();
+
+  if (!GOOGLE_SCRIPT_URL || !API_KEY) {
+    return {
+      success: false,
+      message: 'Configuration Google Sheets manquante.',
+    };
+  }
+
   try {
     const response = await fetch(GOOGLE_SCRIPT_URL, {
       method: 'POST',
@@ -118,6 +140,16 @@ export async function saveStudent(student: any): Promise<SyncResult> {
  * Sauvegarder un rendez-vous spécifique
  */
 export async function saveAppointment(appointment: any): Promise<SyncResult> {
+  const GOOGLE_SCRIPT_URL = getGoogleSheetsUrl();
+  const API_KEY = getApiKey();
+
+  if (!GOOGLE_SCRIPT_URL || !API_KEY) {
+    return {
+      success: false,
+      message: 'Configuration Google Sheets manquante.',
+    };
+  }
+
   try {
     const response = await fetch(GOOGLE_SCRIPT_URL, {
       method: 'POST',
@@ -149,6 +181,16 @@ export async function saveAppointment(appointment: any): Promise<SyncResult> {
  * Sauvegarder une facture spécifique
  */
 export async function saveInvoice(invoice: any): Promise<SyncResult> {
+  const GOOGLE_SCRIPT_URL = getGoogleSheetsUrl();
+  const API_KEY = getApiKey();
+
+  if (!GOOGLE_SCRIPT_URL || !API_KEY) {
+    return {
+      success: false,
+      message: 'Configuration Google Sheets manquante.',
+    };
+  }
+
   try {
     const response = await fetch(GOOGLE_SCRIPT_URL, {
       method: 'POST',
@@ -180,6 +222,16 @@ export async function saveInvoice(invoice: any): Promise<SyncResult> {
  * Sauvegarder un bon de commande spécifique
  */
 export async function savePurchaseOrder(purchaseOrder: any): Promise<SyncResult> {
+  const GOOGLE_SCRIPT_URL = getGoogleSheetsUrl();
+  const API_KEY = getApiKey();
+
+  if (!GOOGLE_SCRIPT_URL || !API_KEY) {
+    return {
+      success: false,
+      message: 'Configuration Google Sheets manquante.',
+    };
+  }
+
   try {
     const response = await fetch(GOOGLE_SCRIPT_URL, {
       method: 'POST',
@@ -211,6 +263,13 @@ export async function savePurchaseOrder(purchaseOrder: any): Promise<SyncResult>
  * Vérifier si un email existe déjà
  */
 export async function checkEmailExists(email: string): Promise<{ exists: boolean; student?: any }> {
+  const GOOGLE_SCRIPT_URL = getGoogleSheetsUrl();
+  const API_KEY = getApiKey();
+
+  if (!GOOGLE_SCRIPT_URL || !API_KEY) {
+    return { exists: false };
+  }
+
   try {
     const response = await fetch(`${GOOGLE_SCRIPT_URL}?action=checkEmail&apiKey=${API_KEY}&email=${encodeURIComponent(email)}`);
     const data = await response.json();
@@ -228,9 +287,57 @@ export async function checkEmailExists(email: string): Promise<{ exists: boolean
 }
 
 /**
+ * Tester la connexion avec Google Sheets
+ */
+export async function testConnection(): Promise<SyncResult> {
+  const GOOGLE_SCRIPT_URL = getGoogleSheetsUrl();
+  const API_KEY = getApiKey();
+
+  if (!GOOGLE_SCRIPT_URL || !API_KEY) {
+    return {
+      success: false,
+      message: 'Configuration Google Sheets manquante. Veuillez configurer l\'URL et la clé API.',
+    };
+  }
+
+  try {
+    const response = await fetch(`${GOOGLE_SCRIPT_URL}?action=loadAll&apiKey=${API_KEY}`);
+    const data = await response.json();
+
+    if (data.success) {
+      return {
+        success: true,
+        message: 'Connexion réussie',
+      };
+    } else {
+      return {
+        success: false,
+        message: data.message || 'Erreur de connexion',
+      };
+    }
+  } catch (error) {
+    console.error('Erreur lors du test de connexion:', error);
+    return {
+      success: false,
+      message: 'Impossible de se connecter au script Google Apps Script',
+    };
+  }
+}
+
+/**
  * Envoyer un email via Google Apps Script
  */
 export async function sendEmailViaGoogle(to: string, subject: string, body: string): Promise<SyncResult> {
+  const GOOGLE_SCRIPT_URL = getGoogleSheetsUrl();
+  const API_KEY = getApiKey();
+
+  if (!GOOGLE_SCRIPT_URL || !API_KEY) {
+    return {
+      success: false,
+      message: 'Configuration Google Sheets manquante.',
+    };
+  }
+
   try {
     const response = await fetch(GOOGLE_SCRIPT_URL, {
       method: 'POST',
