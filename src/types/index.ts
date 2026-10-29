@@ -111,7 +111,7 @@ export interface EmailLog {
   to: string;
   subject: string;
   body: string;
-  type: 'password' | 'purchase-order' | 'invoice' | 'booking-confirmation';
+  type: 'password' | 'purchase-order' | 'invoice' | 'booking-confirmation' | 'appointment-update';
   createdAt: string;
   relatedId?: string;
 }

@@ -25,7 +25,7 @@ export interface SyncResult {
 /**
  * Sauvegarder toutes les données dans Google Sheets
  */
-export async function saveAllData( any): Promise<SyncResult> {
+export async function saveAllData(data: any): Promise<SyncResult> {
   const GOOGLE_SCRIPT_URL = getGoogleSheetsUrl();
   const API_KEY = getApiKey();
 
@@ -46,7 +46,7 @@ export async function saveAllData( any): Promise<SyncResult> {
       body: JSON.stringify({
         action: 'saveAll',
         apiKey: API_KEY,
-         data,
+        data: data,
       }),
     });
 
@@ -365,4 +365,101 @@ export async function sendEmailViaGoogle(to: string, subject: string, body: stri
       message: 'Erreur lors de l\'envoi de l\'email',
     };
   }
+}
+
+/**
+ * Envoyer un email de confirmation de réservation
+ */
+export async function sendBookingConfirmationEmail(
+  studentEmail: string,
+  studentName: string,
+  date: string,
+  time: string,
+  duration: number,
+  subject: string,
+  price: number
+): Promise<SyncResult> {
+  const formattedDate = new Date(date).toLocaleDateString('fr-FR', {
+    weekday: 'long',
+    year: 'numeric',
+    month: 'long',
+    day: 'numeric',
+  });
+
+  const emailBody = `Bonjour ${studentName},
+
+Votre réservation a été enregistrée avec succès !
+
+📅 Détails du cours :
+• Date : ${formattedDate}
+• Heure : ${time}
+• Durée : ${duration} minutes
+• Matière : ${subject}
+• Tarif : ${price}€
+
+Votre demande est en attente de confirmation par le professeur. Vous recevrez un email de confirmation dès que le créneau sera validé.
+
+En cas de question ou pour modifier votre réservation, n'hésitez pas à nous contacter.
+
+Cordialement,
+L'équipe MS Académie`;
+
+  return sendEmailViaGoogle(
+    studentEmail,
+    `Confirmation de réservation - MS Académie`,
+    emailBody
+  );
+}
+
+/**
+ * Envoyer un email de notification de modification de RDV
+ */
+export async function sendAppointmentUpdateEmail(
+  studentEmail: string,
+  studentName: string,
+  date: string,
+  time: string,
+  duration: number,
+  subject: string,
+  status: string,
+  changes: string
+): Promise<SyncResult> {
+  const formattedDate = new Date(date).toLocaleDateString('fr-FR', {
+    weekday: 'long',
+    year: 'numeric',
+    month: 'long',
+    day: 'numeric',
+  });
+
+  const statusLabels: { [key: string]: string } = {
+    pending: 'En attente',
+    confirmed: 'Confirmé',
+    completed: 'Terminé',
+    cancelled: 'Annulé',
+  };
+
+  const emailBody = `Bonjour ${studentName},
+
+Votre rendez-vous a été modifié.
+
+📅 Détails du cours :
+• Date : ${formattedDate}
+• Heure : ${time}
+• Durée : ${duration} minutes
+• Matière : ${subject}
+• Statut : ${statusLabels[status] || status}
+
+🔄 Modifications apportées :
+${changes}
+
+Si vous avez des questions ou souhaitez apporter des modifications, n'hésitez pas à nous contacter.
+
+Cordialement,
+L'équipe MS Académie`;
+
+  return sendEmailViaGoogle(
+    studentEmail,
+    `Modification de votre rendez-vous - MS Académie`,
+    emailBody
+  );
 }

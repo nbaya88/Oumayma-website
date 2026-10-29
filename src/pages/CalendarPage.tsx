@@ -3,9 +3,10 @@ import { useApp } from '../context/AppContext';
 import { ChevronLeft, ChevronRight, Clock, CheckCircle, XCircle, Trash2, Archive, Edit2, Save, Plus } from 'lucide-react';
 import { format, startOfMonth, endOfMonth, eachDayOfInterval, isSameDay, addMonths, subMonths, isToday } from 'date-fns';
 import { fr } from 'date-fns/locale';
+import { sendAppointmentUpdateEmail } from '../services/googleSheetsAPI';
 
 export default function CalendarPage() {
-  const { appointments, students, getStudentById, confirmAppointment, cancelAppointment, deleteAppointment, archiveAppointment, completeAppointment, updateAppointment, addAppointment, pricingSettings } = useApp();
+  const { appointments, students, getStudentById, confirmAppointment, cancelAppointment, deleteAppointment, archiveAppointment, completeAppointment, updateAppointment, addAppointment, pricingSettings, sendEmail } = useApp();
   const [currentMonth, setCurrentMonth] = useState(new Date());
   const [selectedDay, setSelectedDay] = useState<Date | null>(null);
   const [selectedAppointment, setSelectedAppointment] = useState<string | null>(null);
@@ -83,14 +84,110 @@ export default function CalendarPage() {
 
   const handleSaveEdit = () => {
     if (selectedAppointment) {
+      const originalApt = appointments.find(a => a.id === selectedAppointment);
+      if (!originalApt) return;
+
       updateAppointment(selectedAppointment, editForm);
+
+      // Détecter les changements
+      const changes: string[] = [];
+      if (originalApt.date !== editForm.date) {
+        changes.push(`• Date : ${format(new Date(originalApt.date + 'T00:00:00'), 'dd/MM/yyyy', { locale: fr })} → ${format(new Date(editForm.date + 'T00:00:00'), 'dd/MM/yyyy', { locale: fr })}`);
+      }
+      if (originalApt.time !== editForm.time) {
+        changes.push(`• Heure : ${originalApt.time} → ${editForm.time}`);
+      }
+      if (originalApt.duration !== editForm.duration) {
+        changes.push(`• Durée : ${originalApt.duration} min → ${editForm.duration} min`);
+      }
+      if (originalApt.subject !== editForm.subject) {
+        changes.push(`• Matière : ${originalApt.subject} → ${editForm.subject}`);
+      }
+      if (originalApt.status !== editForm.status) {
+        const statusLabels: { [key: string]: string } = {
+          pending: 'En attente',
+          confirmed: 'Confirmé',
+          completed: 'Terminé',
+          cancelled: 'Annulé',
+        };
+        changes.push(`• Statut : ${statusLabels[originalApt.status]} → ${statusLabels[editForm.status]}`);
+      }
+      if (originalApt.price !== editForm.price) {
+        changes.push(`• Prix : ${originalApt.price}€ → ${editForm.price}€`);
+      }
+      if (originalApt.notes !== editForm.notes) {
+        changes.push(`• Notes : modifiées`);
+      }
+
+      // Envoyer l'email de notification si des changements ont été détectés
+      if (changes.length > 0) {
+        const student = getStudentById(originalApt.studentId);
+        if (student && student.email) {
+          sendAppointmentUpdateEmail(
+            student.email,
+            student.firstName,
+            editForm.date,
+            editForm.time,
+            editForm.duration,
+            editForm.subject,
+            editForm.status,
+            changes.join('\n')
+          );
+
+          // Logger l'email
+          sendEmail(
+            student.email,
+            `Modification de votre rendez-vous - MS Académie`,
+            `Bonjour ${student.firstName},\n\nVotre rendez-vous a été modifié.\n\n📅 Détails du cours :\n• Date : ${format(new Date(editForm.date + 'T00:00:00'), 'dd MMMM yyyy', { locale: fr })}\n• Heure : ${editForm.time}\n• Durée : ${editForm.duration} minutes\n• Matière : ${editForm.subject}\n\n🔄 Modifications apportées :\n${changes.join('\n')}\n\nCordialement,\nL'équipe MS Académie`,
+            'appointment-update',
+            student.id
+          );
+        }
+      }
+
       setEditMode(false);
       setShowModal(false);
     }
   };
 
   const handleStatusChange = (id: string, newStatus: 'pending' | 'confirmed' | 'cancelled' | 'completed') => {
+    const originalApt = appointments.find(a => a.id === id);
+    if (!originalApt) return;
+
     updateAppointment(id, { status: newStatus });
+
+    // Envoyer l'email de notification si le statut a changé
+    if (originalApt.status !== newStatus) {
+      const student = getStudentById(originalApt.studentId);
+      if (student && student.email) {
+        const statusLabels: { [key: string]: string } = {
+          pending: 'En attente',
+          confirmed: 'Confirmé',
+          completed: 'Terminé',
+          cancelled: 'Annulé',
+        };
+
+        sendAppointmentUpdateEmail(
+          student.email,
+          student.firstName,
+          originalApt.date,
+          originalApt.time,
+          originalApt.duration,
+          originalApt.subject,
+          newStatus,
+          `• Statut : ${statusLabels[originalApt.status]} → ${statusLabels[newStatus]}`
+        );
+
+        // Logger l'email
+        sendEmail(
+          student.email,
+          `Modification de votre rendez-vous - MS Académie`,
+          `Bonjour ${student.firstName},\n\nVotre rendez-vous a été modifié.\n\n📅 Détails du cours :\n• Date : ${format(new Date(originalApt.date + 'T00:00:00'), 'dd MMMM yyyy', { locale: fr })}\n• Heure : ${originalApt.time}\n• Durée : ${originalApt.duration} minutes\n• Matière : ${originalApt.subject}\n\n🔄 Modification apportée :\n• Statut : ${statusLabels[originalApt.status]} → ${statusLabels[newStatus]}\n\nCordialement,\nL'équipe MS Académie`,
+          'appointment-update',
+          student.id
+        );
+      }
+    }
   };
 
   const handleCreateAppointment = () => {

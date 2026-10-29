@@ -3,6 +3,7 @@ import { useApp } from '../context/AppContext';
 import { Calendar, Clock, BookOpen, CheckCircle, ArrowRight, GraduationCap, Star, Users, Award, TrendingUp, Calculator, Sigma, Pi, FunctionSquare, Atom, FlaskConical, LogIn, UserPlus, Sun, Moon, ChevronLeft, ChevronRight, Quote } from 'lucide-react';
 import { format, addDays } from 'date-fns';
 import { fr } from 'date-fns/locale';
+import { sendBookingConfirmationEmail } from '../services/googleSheetsAPI';
 
 export default function HomePage() {
   const { students, appointments, addAppointment, addStudent, theme, toggleTheme, sendEmail, findStudentByEmailOrPhone, pricingSettings } = useApp();
@@ -152,7 +153,10 @@ export default function HomePage() {
         isNew = true;
 
         // Envoyer l'email avec le mot de passe
-       
+        import('../services/emailService').then(({ sendWelcomeEmail }) => {
+          sendWelcomeEmail(studentInfo.email, studentInfo.firstName, password);
+        });
+
         // Log the email
         sendEmail(
           studentInfo.email,
@@ -180,6 +184,10 @@ export default function HomePage() {
         isNew = true;
 
         if (studentInfo.email) {
+          import('../services/emailService').then(({ sendWelcomeEmail }) => {
+            sendWelcomeEmail(studentInfo.email, studentInfo.firstName || 'Nouveau', password);
+          });
+
           // Log the email
           sendEmail(
             studentInfo.email,
@@ -203,6 +211,29 @@ export default function HomePage() {
       price: getPrice(),
       paid: false,
     });
+
+    // Envoyer l'email de confirmation de réservation
+    const student = students.find(s => s.id === studentId);
+    if (student && student.email) {
+      sendBookingConfirmationEmail(
+        student.email,
+        student.firstName,
+        selectedDate,
+        selectedTime,
+        selectedDuration,
+        subject,
+        getPrice()
+      );
+
+      // Logger l'email
+      sendEmail(
+        student.email,
+        `Confirmation de réservation - MS Académie`,
+        `Bonjour ${student.firstName},\n\nVotre réservation a été enregistrée avec succès !\n\n📅 Détails du cours :\n• Date : ${format(new Date(selectedDate), 'dd MMMM yyyy', { locale: fr })}\n• Heure : ${selectedTime}\n• Durée : ${selectedDuration} minutes\n• Matière : ${subject}\n• Tarif : ${getPrice()}€\n\nVotre demande est en attente de confirmation par le professeur.\n\nCordialement,\nL'équipe MS Académie`,
+        'booking-confirmation',
+        studentId
+      );
+    }
 
     setGeneratedPassword(password);
     setIsNewAccount(isNew);

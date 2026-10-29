@@ -3,9 +3,10 @@ import { useApp } from '../context/AppContext';
 import { Calendar, FileText, Download, Clock, CheckCircle, AlertCircle, XCircle, Upload, Trash2, BookOpen, Euro, User, LogOut, FileUp, ArrowRight, X, ChevronLeft, ChevronRight } from 'lucide-react';
 import { format, addDays } from 'date-fns';
 import { fr } from 'date-fns/locale';
+import { sendBookingConfirmationEmail } from '../services/googleSheetsAPI';
 
 export default function StudentDashboardPage() {
-  const { currentStudentId, getStudentById, appointments, invoices, purchaseOrders, documents, addDocument, deleteDocument, logoutStudent, addAppointment, pricingSettings } = useApp();
+  const { currentStudentId, getStudentById, appointments, invoices, purchaseOrders, documents, addDocument, deleteDocument, logoutStudent, addAppointment, pricingSettings, sendEmail } = useApp();
   const [activeTab, setActiveTab] = useState<'overview' | 'appointments' | 'invoices' | 'documents'>('overview');
   const [showUploadModal, setShowUploadModal] = useState(false);
 
@@ -113,6 +114,28 @@ export default function StudentDashboardPage() {
       price: getBookingPrice(),
       paid: false,
     });
+
+    // Envoyer l'email de confirmation de réservation
+    if (student.email) {
+      sendBookingConfirmationEmail(
+        student.email,
+        student.firstName,
+        selectedDate,
+        selectedTime,
+        selectedDuration,
+        subject,
+        getBookingPrice()
+      );
+
+      // Logger l'email
+      sendEmail(
+        student.email,
+        `Confirmation de réservation - MS Académie`,
+        `Bonjour ${student.firstName},\n\nVotre réservation a été enregistrée avec succès !\n\n📅 Détails du cours :\n• Date : ${format(new Date(selectedDate), 'dd MMMM yyyy', { locale: fr })}\n• Heure : ${selectedTime}\n• Durée : ${selectedDuration} minutes\n• Matière : ${subject}\n• Tarif : ${getBookingPrice()}€\n\nVotre demande est en attente de confirmation par le professeur.\n\nCordialement,\nL'équipe MS Académie`,
+        'booking-confirmation',
+        student.id
+      );
+    }
 
     setBookingConfirmed(true);
   };
