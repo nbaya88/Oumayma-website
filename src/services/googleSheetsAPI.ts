@@ -84,7 +84,7 @@ export async function loadAllData(): Promise<SyncResult> {
     return {
       success: true,
       message: 'Données chargées avec succès',
-       data.data,
+      data: data.data,
     };
   } catch (error) {
     console.error('Erreur lors du chargement:', error);
