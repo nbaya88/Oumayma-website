@@ -1,7 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { HashRouter, Routes, Route, Navigate, useNavigate, useLocation } from 'react-router-dom';
 import { AppProvider, useApp } from './context/AppContext';
-import { initEmailJS } from './services/emailService';
 import HomePage from './pages/HomePage';
 import DashboardPage from './pages/DashboardPage';
 import CalendarPage from './pages/CalendarPage';
@@ -210,11 +209,6 @@ function StudentSpace() {
 // Composant principal de l'application
 function AppContent() {
   const { isAdmin, currentStudentId } = useApp();
-
-  // Initialiser EmailJS au démarrage
-  useEffect(() => {
-    initEmailJS();
-  }, []);
 
   return (
     <Routes>

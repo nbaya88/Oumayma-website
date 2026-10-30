@@ -3,7 +3,6 @@ import { Student, Appointment, Invoice, PurchaseOrder, Document, CompanyInfo, Em
 import { v4 as uuidv4 } from 'uuid';
 import { format } from 'date-fns';
 import { fr } from 'date-fns/locale';
-import { initEmailJS } from '../services/emailService';
 import { saveAllData, sendPurchaseOrderEmail, sendInvoiceEmail } from '../services/googleSheetsAPI';
 
 interface AppState {
