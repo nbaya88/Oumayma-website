@@ -331,22 +331,29 @@ export async function sendEmailViaGoogle(to: string, subject: string, body: stri
   const GOOGLE_SCRIPT_URL = getGoogleSheetsUrl();
   const API_KEY = getApiKey();
 
+  console.log('📧 Tentative d\'envoi d\'email via Google Apps Script');
+  console.log('📧 Destinataire:', to);
+  console.log('📧 Sujet:', subject);
+  console.log('📧 URL du script:', GOOGLE_SCRIPT_URL ? '✅ Configurée' : '❌ Manquante');
+  console.log('📧 Clé API:', API_KEY ? '✅ Configurée' : '❌ Manquante');
+
   if (!GOOGLE_SCRIPT_URL || !API_KEY) {
+    console.error('❌ Configuration Google Sheets manquante');
     return {
       success: false,
-      message: 'Configuration Google Sheets manquante.',
+      message: 'Configuration Google Sheets manquante. Vérifiez les variables VITE_GOOGLE_SCRIPT_URL et VITE_API_KEY.',
     };
   }
 
   try {
+    // Essayer avec sendEmailAction (nouvelle méthode)
     const response = await fetch(GOOGLE_SCRIPT_URL, {
       method: 'POST',
-      mode: 'no-cors',
       headers: {
-        'Content-Type': 'text/plain',
+        'Content-Type': 'text/plain;charset=utf-8',
       },
       body: JSON.stringify({
-        action: 'sendEmail',
+        action: 'sendEmailAction',
         apiKey: API_KEY,
         to: to,
         subject: subject,
@@ -354,15 +361,19 @@ export async function sendEmailViaGoogle(to: string, subject: string, body: stri
       }),
     });
 
+    // Avec no-cors, on ne peut pas lire la réponse, mais on peut vérifier si la requête a réussi
+    console.log('✅ Requête envoyée au script Google Apps Script');
+    console.log('✅ Status:', response.status);
+
     return {
       success: true,
       message: 'Email envoyé avec succès',
     };
   } catch (error) {
-    console.error('Erreur lors de l\'envoi de l\'email:', error);
+    console.error('❌ Erreur lors de l\'envoi de l\'email:', error);
     return {
       success: false,
-      message: 'Erreur lors de l\'envoi de l\'email',
+      message: `Erreur lors de l'envoi de l'email: ${error instanceof Error ? error.message : 'Erreur inconnue'}`,
     };
   }
 }

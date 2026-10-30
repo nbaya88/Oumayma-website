@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useApp } from '../context/AppContext';
-import { LayoutDashboard, Calendar, Users, FileText, Archive, GraduationCap, Menu, X, LogOut, Home, Settings, Sun, Moon } from 'lucide-react';
+import { LayoutDashboard, Calendar, Users, FileText, Archive, GraduationCap, Menu, X, LogOut, Home, Settings, Sun, Moon, Mail } from 'lucide-react';
 import { Page } from '../types';
 
 interface AdminLayoutProps {
@@ -20,6 +20,7 @@ export default function AdminLayout({ currentPage, onPageChange, children }: Adm
     { page: 'invoices', label: 'Facturation', icon: <FileText className="w-5 h-5" /> },
     { page: 'archives', label: 'Archives', icon: <Archive className="w-5 h-5" /> },
     { page: 'settings', label: 'Paramètres', icon: <Settings className="w-5 h-5" /> },
+    { page: 'email-test', label: 'Test Emails', icon: <Mail className="w-5 h-5" /> },
   ];
 
   const handleLogout = () => {

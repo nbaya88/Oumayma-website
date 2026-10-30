@@ -131,6 +131,7 @@ export type Page =
   | 'invoices'
   | 'archives'
   | 'settings'
+  | 'email-test'
   | 'student-login'
   | 'student-dashboard'
   | 'student-profile'

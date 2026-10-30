@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { HashRouter, Routes, Route, Navigate, useNavigate, useLocation } from 'react-router-dom';
 import { AppProvider, useApp } from './context/AppContext';
+import { initEmailJS } from './services/emailService';
 import HomePage from './pages/HomePage';
 import DashboardPage from './pages/DashboardPage';
 import CalendarPage from './pages/CalendarPage';
@@ -11,6 +12,7 @@ import SettingsPage from './pages/SettingsPage';
 import StudentLoginPage from './pages/StudentLoginPage';
 import StudentDashboardPage from './pages/StudentDashboardPage';
 import StudentProfilePage from './pages/StudentProfilePage';
+import EmailTestPage from './pages/EmailTestPage';
 import AdminLayout from './components/AdminLayout';
 import { Page } from './types';
 
@@ -147,6 +149,7 @@ function AdminSpace() {
     if (path === '/invoices') return 'invoices';
     if (path === '/archives') return 'archives';
     if (path === '/settings') return 'settings';
+    if (path === '/email-test') return 'email-test';
     return 'dashboard';
   };
 
@@ -175,6 +178,7 @@ function AdminSpace() {
       case 'invoices': return <InvoicesPage />;
       case 'archives': return <ArchivesPage />;
       case 'settings': return <SettingsPage />;
+      case 'email-test': return <EmailTestPage />;
       default: return <DashboardPage />;
     }
   };
@@ -207,6 +211,11 @@ function StudentSpace() {
 function AppContent() {
   const { isAdmin, currentStudentId } = useApp();
 
+  // Initialiser EmailJS au démarrage
+  useEffect(() => {
+    initEmailJS();
+  }, []);
+
   return (
     <Routes>
       {/* Page d'accueil publique */}
@@ -229,6 +238,7 @@ function AppContent() {
       <Route path="/invoices" element={<AdminSpace />} />
       <Route path="/archives" element={<AdminSpace />} />
       <Route path="/settings" element={<AdminSpace />} />
+      <Route path="/email-test" element={<AdminSpace />} />
 
       {/* Espace élève */}
       <Route path="/student-dashboard" element={<StudentSpace />} />
